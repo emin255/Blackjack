@@ -67,8 +67,8 @@ int main(void)
 
     SetTargetFPS(60);
     Texture2D cardSpriteSheet = LoadTexture("cards.png");
-    Sound kartcekmesesi = LoadSound("ses.mp3");
-    Music arkaplan = LoadMusicStream("arkaplan.mp3");
+    Sound kartcekmesesi = LoadSound("ses.ogg");
+    Music arkaplan = LoadMusicStream("arkaplan.ogg");
     PlayMusicStream(arkaplan);
 
     if (cardSpriteSheet.id == 0) {
@@ -80,7 +80,6 @@ int main(void)
     // Yükleme kontrolü (Bu kısım çok önemli, sana hatayı söyler)
     while (!WindowShouldClose())
     {
-        SetMusicVolume(arkaplan,1.0f);
         UpdateMusicStream(arkaplan);
         Vector2 mousepos = GetMousePosition();
         switch (mevcutDurum) {
@@ -114,17 +113,18 @@ int main(void)
                 kart_kapali_mi = 1;
                 int kasa_durumu = oyuncu_el_degeri(&krupiyer);
 
-                while (kasa_durumu<17&&oyuncu_el_degeri(&oyuncu)!=21&&oyuncu_el_degeri(&oyuncu)<21) {
+                if(kasa_durumu<17&&oyuncu_el_degeri(&oyuncu)!=21&&oyuncu_el_degeri(&oyuncu)<21) {
                     if (GetTime() > kasaCekmeZamani) {
                         PlaySound(kartcekmesesi);
                         kart_cek(&krupiyer,deste,&kart_sayisi);
                         kasa_durumu = oyuncu_el_degeri(&krupiyer);
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
-                        }
                     }
+                }
+                if (kasa_durumu>17&&oyuncu_el_degeri(&oyuncu)!=21&&oyuncu_el_degeri(&oyuncu)<21) {
                     mevcutDurum = STATE_SONUC;
                     break;
-
+                }
 
             case STATE_SONUC:
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {

@@ -84,8 +84,6 @@ int oyuncu_el_degeri(struct oyuncu* oyuncu) {
     int as_sayisi = 0;
     for (int j = 0; j < oyuncu->kart_sayi; j++) {
         el += oyuncu->el[j].value;
-        printf("Kartın kodumu %f %f \n",oyuncu->el[j].konumx ,oyuncu->el[j].konumy);
-        printf("kartın adı %s %s \n",oyuncu->el[j].suit,oyuncu->el[j].isim );
         if (oyuncu->el[j].isim[0] == 'A') {
             as_sayisi++;
         }
