@@ -15,6 +15,7 @@ struct kart {
     char isim[3];
 };
 struct oyuncu {
+    int bakiye;
     int value ;
     int kart_sayi;
     struct kart el[5];

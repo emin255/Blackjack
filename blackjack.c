@@ -16,9 +16,6 @@ int kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
     if (oyuncu_el_degeri(krupiyer)>21) {
         return 4;
     }
-    if (oyuncu_el_degeri(oyuncu)==oyuncu_el_degeri(krupiyer)) {
-        return 3;
-    }
     if (oyuncu_el_degeri(oyuncu)==21&&oyuncu_el_degeri(krupiyer)!=21&&oyuncu->kart_sayi == 2) {
         return 1;
     }
@@ -28,40 +25,30 @@ int kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
     if (oyuncu_el_degeri(oyuncu)>oyuncu_el_degeri(krupiyer)) {
         return 1;
     }
+    return 3;
+
 }
 void deste_olustur(struct kart deste[52]){
     char *turler[] = {"kupa","karo","sinek","maca"};
     int hedef;
+    for (int y = 0; y < 4; y++) {
+        for (int x = 0; x < 13; x++) {
+            hedef = y*13+x;
+            deste[hedef].konumx = x;
+            deste[hedef].konumy = y;
+        }
+    }
     for (int j = 0; j < 4; j++) {
         for (int i = 0; i < 13; i++) {
             hedef = j*13+i;
             if (i==0) {
                 deste[hedef].value=11;
-                deste[hedef].konumx=0;
-                deste[hedef].konumy=j;
-
             }else if(i<10){
                 deste[hedef].value=i+1;
-                deste[hedef].konumx=i;
-                deste[hedef].konumy=j;
-
             }
             else {
                 deste[hedef].value=10;
             }
-            if (i==10) {
-                deste[hedef].konumx=i;
-                deste[hedef].konumy=j;
-            }
-            if (i==11) {
-                deste[hedef].konumx=i;
-                deste[hedef].konumy=j;
-            }
-            if (i==12) {
-                deste[hedef].konumx=i;
-                deste[hedef].konumy=j;
-            }
-
             strcpy(deste[hedef].suit,turler[j]);
             if (i==0) {
                 strcpy(deste[hedef].isim,"A");

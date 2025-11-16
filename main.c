@@ -6,7 +6,13 @@ const float CARD_HEIGHT = 120.0f;
 const Rectangle hitButton = { 100, 600, 100, 50 };
 const Rectangle standButton = { 220, 600, 100, 50 };
 const Rectangle tekrarOynaButton = { 100, 600, 220, 50 };
+const Rectangle bahis10arttirbutton = { 100, 600, 100, 50 };
+const Rectangle bahis50arttirbutton = { 210, 600, 100, 50 };
+const Rectangle bahis100arttirbutton = { 320, 600, 100, 50 };
+const Rectangle bahissifirlabutton = { 430, 600, 100, 50 };
+const Rectangle bahiskoy = { 540, 600, 100, 50 };
 typedef enum{
+    STATE_BAHİS,         // Bahis Zamanı
     STATE_KART_DAGIT,    // El başlıyor
     STATE_OYUNCU_TURU,   // Oyuncu Hit/Stand bekliyor
     STATE_KASA_TURU,     // Kasa oynuyor
@@ -28,7 +34,6 @@ void yeni_el(struct oyuncu* oyuncu, struct oyuncu* krupiyer, struct kart* deste,
     (*kart_sayisi)++;
     krupiyer->kart_sayi += 2;
     oyuncu->kart_sayi += 2;
-
 }
 void el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
@@ -44,14 +49,16 @@ void el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizl
     }
 }
 void kartlarbittimi(int *kart_sayisi,struct kart* deste) {
-    if (*kart_sayisi >52) {
+    if (*kart_sayisi >42) {
         *kart_sayisi = 0;
         deste_olustur(deste);
         desteyi_karistir(deste);
     }
 }
+
 int main(void)
 {
+    int bahis = 0;
     char oyun_sonucu[30];
     double kasaCekmeZamani = 0.0;
     const double kasaBeklemeSuresi = 1.0;
@@ -59,14 +66,15 @@ int main(void)
     int kart_kapali_mi = 0;
     const int screenWidth = 1900;
     const int screenHeight = 1000;
-    GAME_STATE mevcutDurum = STATE_KART_DAGIT;
-
+    GAME_STATE mevcutDurum = STATE_BAHİS;
+    int hesaplandi_mi = 0;
     struct kart deste[52];
     struct oyuncu krupiyer;
     struct oyuncu oyuncu;
     deste_olustur(deste);
     desteyi_karistir(deste);
-
+    oyuncu.bakiye = 1000;
+    oyuncu.value = 0;
     InitWindow(screenWidth, screenHeight, "Raylib - Blackjack");
     InitAudioDevice();
 
@@ -86,13 +94,33 @@ int main(void)
         UpdateMusicStream(arkaplan);
         Vector2 mousepos = GetMousePosition();
         switch (mevcutDurum) {
-            case STATE_KART_DAGIT:
-                if (kart_sayisi >52) {
-                    kartlarbittimi(&kart_sayisi, deste);
-                    kart_sayisi = 0;
-                    deste_olustur(deste);
-                    desteyi_karistir(deste);
+            case STATE_BAHİS:
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+                    if (CheckCollisionPointRec(mousepos, bahis10arttirbutton)) {
+                        bahis += 10;
+                    }
+                    if (CheckCollisionPointRec(mousepos, bahis50arttirbutton)) {
+                        bahis += 50;
+                    }
+                    if (CheckCollisionPointRec(mousepos, bahis100arttirbutton)) {
+                        bahis += 100;
+                    }
+                    if (CheckCollisionPointRec(mousepos, bahiskoy)) {
+                        if (bahis<=oyuncu.bakiye&&bahis>0) {
+                            oyuncu.bakiye -= bahis;
+                            mevcutDurum = STATE_KART_DAGIT;
+                        }
+                        else {
+                            bahis = 0;
+                        }
+                    }
+                    if (CheckCollisionPointRec(mousepos, bahissifirlabutton)) {
+                        bahis = 0;
+                    }
                 }
+                break;
+            case STATE_KART_DAGIT:
+                kartlarbittimi(&kart_sayisi, deste);
                 kart_kapali_mi = 0;
                 yeni_el(&oyuncu,&krupiyer,deste,&kart_sayisi);
                 int deger = oyuncu_el_degeri(&oyuncu);
@@ -100,22 +128,21 @@ int main(void)
                 mevcutDurum = STATE_OYUNCU_TURU;
                 break;
             case STATE_OYUNCU_TURU:
-                if (deger == 21) {
+                if (oyuncu.value == 21) {
+                    hesaplandi_mi = 0;
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
-                    break;
+                }
+                if (oyuncu.value >21) {
+                    hesaplandi_mi = 0;
+                    mevcutDurum = STATE_SONUC;
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, hitButton)&&oyuncu_el_degeri(&oyuncu)<21) {
-                    kartlarbittimi(&kart_sayisi, deste);
                     kart_cek(&oyuncu,deste,&kart_sayisi);
                     PlaySound(kartcekmesesi);
                     oyuncu.value = oyuncu_el_degeri(&oyuncu);
-                    if (oyuncu.value >21) {
-                        mevcutDurum = STATE_SONUC;
-                    }
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, standButton)) {
-                    kartlarbittimi(&kart_sayisi, deste);
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                 }
@@ -123,25 +150,48 @@ int main(void)
             case STATE_KASA_TURU:
                 kart_kapali_mi = 1;
                 int kasa_durumu = oyuncu_el_degeri(&krupiyer);
-
-                if(kasa_durumu<17&&oyuncu_el_degeri(&oyuncu)<=21) {
+                if(kasa_durumu<17) {
                     if (GetTime() > kasaCekmeZamani) {
-                        kartlarbittimi(&kart_sayisi, deste);
                         PlaySound(kartcekmesesi);
                         kart_cek(&krupiyer,deste,&kart_sayisi);
                         kasa_durumu = oyuncu_el_degeri(&krupiyer);
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     }
                 }
-                if (kasa_durumu>17&&oyuncu_el_degeri(&oyuncu)<=21) {
+                if (kasa_durumu>=17&&oyuncu_el_degeri(&oyuncu)<=21) {
                     mevcutDurum = STATE_SONUC;
-                    break;
                 }
+                break;
             case STATE_SONUC:
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                     if (CheckCollisionPointRec(mousepos, tekrarOynaButton)) {
-                        mevcutDurum = STATE_KART_DAGIT; // Tekrar başlat!
+                        mevcutDurum = STATE_BAHİS; // Tekrar başlat!
+                        bahis = 0;
+                        oyuncu.value = 0;
+                        hesaplandi_mi = 0;
                     }
+                }
+                if (hesaplandi_mi == 0) {
+                    int sonuc = kazanan(&oyuncu,&krupiyer);
+                    if (sonuc==0) {
+                        strcpy(oyun_sonucu,"kasa kazandi");
+                    }
+                    else if (sonuc==1) {
+                        strcpy(oyun_sonucu,"oyuncu kazandi");
+                        oyuncu.bakiye += bahis*2;
+                    }
+                    else if (sonuc==2) {
+                        strcpy(oyun_sonucu,"oyuncu patladi");
+                    }
+                    else if (sonuc==3) {
+                        strcpy(oyun_sonucu,"berabere");
+                        oyuncu.bakiye += bahis;
+                    }
+                    else if (sonuc==4) {
+                        strcpy(oyun_sonucu,"Kasa patladı");
+                        oyuncu.bakiye += bahis*2;
+                    }
+                    hesaplandi_mi = 1;
                 }
                 break;
         }
@@ -152,32 +202,33 @@ int main(void)
         el_ciz(&krupiyer,cardSpriteSheet,(Vector2){100,200},kart_kapali_mi);
 
         DrawText(TextFormat("Skor %d",oyuncu.value),100,550,20,WHITE);
-
-        if (mevcutDurum == STATE_OYUNCU_TURU) {
+        if (mevcutDurum == STATE_BAHİS) {
+            DrawRectangleRec(bahis10arttirbutton, LIME);
+            DrawText("+10", 35 + bahis10arttirbutton.x, 15 + bahis10arttirbutton.y, 20, BLACK);
+            DrawRectangleRec(bahis50arttirbutton, RED);
+            DrawText("+50", bahis50arttirbutton.x + 15 , bahis50arttirbutton.y + 15, 20, BLACK);
+            DrawRectangleRec(bahis100arttirbutton, RED);
+            DrawText("+100", bahis100arttirbutton.x+15, bahis100arttirbutton.y + 15, 20, BLACK);
+            DrawRectangleRec(bahissifirlabutton, RED);
+            DrawText("bahsi sifirla", bahissifirlabutton.x , bahissifirlabutton.y +15, 20, BLACK);
+            DrawRectangleRec(bahiskoy, RED);
+            DrawText("bahsi koy", bahiskoy.x , bahiskoy.y + 15, 20, BLACK);
+            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
+        }
+        else if (mevcutDurum == STATE_OYUNCU_TURU) {
             DrawRectangleRec(hitButton, LIME);
             DrawText("HIT", 35.0f + hitButton.x, 15.0f + hitButton.y, 20, BLACK);
             DrawRectangleRec(standButton, RED);
             DrawText("STAND", standButton.x + 25, standButton.y + 15, 20, BLACK);
+            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
         } else if (mevcutDurum == STATE_SONUC) {
-            // (Kazananı buraya yaz)
-            if (kazanan(&oyuncu,&krupiyer)==0) {
-                strcpy(oyun_sonucu,"kasa kazandi");
-            }
-            else if (kazanan(&oyuncu,&krupiyer)==1) {
-                strcpy(oyun_sonucu,"oyuncu kazandi");
-            }
-            else if (kazanan(&oyuncu,&krupiyer)==2) {
-                strcpy(oyun_sonucu,"oyuncu patladi");
-            }
-            else if (kazanan(&oyuncu,&krupiyer)==3) {
-                strcpy(oyun_sonucu,"berabere");
-            }
-            else if (kazanan(&oyuncu,&krupiyer)==4) {
-                strcpy(oyun_sonucu,"Kasa patladı");
-            }
             DrawText(TextFormat("%s",oyun_sonucu),100,360,20,WHITE);
             DrawRectangleRec(tekrarOynaButton, BLUE);
             DrawText("TEKRAR OYNA", tekrarOynaButton.x + 40, tekrarOynaButton.y + 15, 20, WHITE);
+            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
         }
         EndDrawing();
     }
@@ -188,3 +239,5 @@ int main(void)
     CloseWindow();
     return 0;
 }
+
+
