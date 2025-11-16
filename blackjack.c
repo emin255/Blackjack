@@ -16,17 +16,17 @@ int kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
     if (oyuncu_el_degeri(krupiyer)>21) {
         return 4;
     }
-    if (oyuncu_el_degeri(oyuncu)==21&&oyuncu_el_degeri(krupiyer)<21) {
-        return 1;
-    }
-    if (oyuncu_el_degeri(oyuncu)<oyuncu_el_degeri(krupiyer)&&oyuncu_el_degeri(krupiyer)<=21) {
-        return 0;
-    }
-    if (oyuncu_el_degeri(oyuncu)>oyuncu_el_degeri(krupiyer)&&oyuncu_el_degeri(oyuncu)<21) {
-        return 1;
-    }
     if (oyuncu_el_degeri(oyuncu)==oyuncu_el_degeri(krupiyer)) {
         return 3;
+    }
+    if (oyuncu_el_degeri(oyuncu)==21&&oyuncu_el_degeri(krupiyer)!=21&&oyuncu->kart_sayi == 2) {
+        return 1;
+    }
+    if (oyuncu_el_degeri(oyuncu)<oyuncu_el_degeri(krupiyer)) {
+        return 0;
+    }
+    if (oyuncu_el_degeri(oyuncu)>oyuncu_el_degeri(krupiyer)) {
+        return 1;
     }
 }
 void deste_olustur(struct kart deste[52]){

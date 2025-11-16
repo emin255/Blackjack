@@ -16,9 +16,6 @@ Rectangle kart_degerini_al(struct kart* kart) {
     return (Rectangle){ (kart->konumx)*CARD_WIDTH, kart->konumy*CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT };
 }
 void yeni_el(struct oyuncu* oyuncu, struct oyuncu* krupiyer, struct kart* deste, int* kart_sayisi) {
-    deste_olustur(deste);
-    desteyi_karistir(deste);
-
     krupiyer->kart_sayi = 0;
     oyuncu->kart_sayi = 0;
     krupiyer->el[0] = deste[*kart_sayisi];
@@ -46,9 +43,15 @@ void el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizl
         }
     }
 }
+void kartlarbittimi(int *kart_sayisi,struct kart* deste) {
+    if (*kart_sayisi >52) {
+        *kart_sayisi = 0;
+        deste_olustur(deste);
+        desteyi_karistir(deste);
+    }
+}
 int main(void)
 {
-
     char oyun_sonucu[30];
     double kasaCekmeZamani = 0.0;
     const double kasaBeklemeSuresi = 1.0;
@@ -61,6 +64,8 @@ int main(void)
     struct kart deste[52];
     struct oyuncu krupiyer;
     struct oyuncu oyuncu;
+    deste_olustur(deste);
+    desteyi_karistir(deste);
 
     InitWindow(screenWidth, screenHeight, "Raylib - Blackjack");
     InitAudioDevice();
@@ -76,14 +81,18 @@ int main(void)
         CloseWindow();
         return -1;
     }
-
-    // Yükleme kontrolü (Bu kısım çok önemli, sana hatayı söyler)
     while (!WindowShouldClose())
     {
         UpdateMusicStream(arkaplan);
         Vector2 mousepos = GetMousePosition();
         switch (mevcutDurum) {
             case STATE_KART_DAGIT:
+                if (kart_sayisi >52) {
+                    kartlarbittimi(&kart_sayisi, deste);
+                    kart_sayisi = 0;
+                    deste_olustur(deste);
+                    desteyi_karistir(deste);
+                }
                 kart_kapali_mi = 0;
                 yeni_el(&oyuncu,&krupiyer,deste,&kart_sayisi);
                 int deger = oyuncu_el_degeri(&oyuncu);
@@ -96,7 +105,8 @@ int main(void)
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     break;
                 }
-                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, hitButton)) {
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, hitButton)&&oyuncu_el_degeri(&oyuncu)<21) {
+                    kartlarbittimi(&kart_sayisi, deste);
                     kart_cek(&oyuncu,deste,&kart_sayisi);
                     PlaySound(kartcekmesesi);
                     oyuncu.value = oyuncu_el_degeri(&oyuncu);
@@ -105,6 +115,7 @@ int main(void)
                     }
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, standButton)) {
+                    kartlarbittimi(&kart_sayisi, deste);
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                 }
@@ -113,19 +124,19 @@ int main(void)
                 kart_kapali_mi = 1;
                 int kasa_durumu = oyuncu_el_degeri(&krupiyer);
 
-                if(kasa_durumu<17&&oyuncu_el_degeri(&oyuncu)!=21&&oyuncu_el_degeri(&oyuncu)<21) {
+                if(kasa_durumu<17&&oyuncu_el_degeri(&oyuncu)<=21) {
                     if (GetTime() > kasaCekmeZamani) {
+                        kartlarbittimi(&kart_sayisi, deste);
                         PlaySound(kartcekmesesi);
                         kart_cek(&krupiyer,deste,&kart_sayisi);
                         kasa_durumu = oyuncu_el_degeri(&krupiyer);
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     }
                 }
-                if (kasa_durumu>17&&oyuncu_el_degeri(&oyuncu)!=21&&oyuncu_el_degeri(&oyuncu)<21) {
+                if (kasa_durumu>17&&oyuncu_el_degeri(&oyuncu)<=21) {
                     mevcutDurum = STATE_SONUC;
                     break;
                 }
-
             case STATE_SONUC:
                 if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
                     if (CheckCollisionPointRec(mousepos, tekrarOynaButton)) {
@@ -175,6 +186,5 @@ int main(void)
     UnloadMusicStream(arkaplan); // Yüklenen müziği temizle
     CloseAudioDevice();
     CloseWindow();
-
     return 0;
 }
