@@ -77,6 +77,8 @@ int main(void)
     oyuncu.value = 0;
     InitWindow(screenWidth, screenHeight, "Raylib - Blackjack");
     InitAudioDevice();
+    oyuncu.kart_sayi = 0;
+    krupiyer.kart_sayi = 0;
 
     SetTargetFPS(60);
     Texture2D cardSpriteSheet = LoadTexture("cards.png");
@@ -95,6 +97,7 @@ int main(void)
         Vector2 mousepos = GetMousePosition();
         switch (mevcutDurum) {
             case STATE_BAHİS:
+                hesaplandi_mi = 0;
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (CheckCollisionPointRec(mousepos, bahis10arttirbutton)) {
                         bahis += 10;
@@ -120,6 +123,7 @@ int main(void)
                 }
                 break;
             case STATE_KART_DAGIT:
+                strcpy(oyun_sonucu,"      ");
                 kartlarbittimi(&kart_sayisi, deste);
                 kart_kapali_mi = 0;
                 yeni_el(&oyuncu,&krupiyer,deste,&kart_sayisi);
@@ -129,12 +133,10 @@ int main(void)
                 break;
             case STATE_OYUNCU_TURU:
                 if (oyuncu.value == 21) {
-                    hesaplandi_mi = 0;
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                 }
                 if (oyuncu.value >21) {
-                    hesaplandi_mi = 0;
                     mevcutDurum = STATE_SONUC;
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, hitButton)&&oyuncu_el_degeri(&oyuncu)<21) {
@@ -158,7 +160,7 @@ int main(void)
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     }
                 }
-                if (kasa_durumu>=17&&oyuncu_el_degeri(&oyuncu)<=21) {
+                if (kasa_durumu>=17) {
                     mevcutDurum = STATE_SONUC;
                 }
                 break;
