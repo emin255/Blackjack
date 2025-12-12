@@ -1,10 +1,12 @@
 #include "raylib.h"
 #include "blackjack.h"
+#include "string.h"
 
 const float CARD_WIDTH = 84.0f;
 const float CARD_HEIGHT = 120.0f;
 const Rectangle hitButton = { 100, 600, 100, 50 };
-const Rectangle standButton = { 220, 600, 100, 50 };
+const Rectangle doubleDownButton = {220, 600, 100, 50 };
+const Rectangle standButton = { 340, 600, 100, 50 };
 const Rectangle tekrarOynaButton = { 100, 600, 220, 50 };
 const Rectangle bahis10arttirbutton = { 100, 600, 100, 50 };
 const Rectangle bahis50arttirbutton = { 210, 600, 100, 50 };
@@ -148,6 +150,13 @@ int main(void)
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                 }
+                if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, doubleDownButton)) {
+                    kart_cek(&oyuncu,deste,&kart_sayisi);
+                    PlaySound(kartcekmesesi);
+                    bahis *= 2;
+                    mevcutDurum = STATE_KASA_TURU;
+                    kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
+                }
                 break;
             case STATE_KASA_TURU:
                 kart_kapali_mi = 1;
@@ -221,6 +230,8 @@ int main(void)
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
             DrawRectangleRec(hitButton, LIME);
             DrawText("HIT", 35.0f + hitButton.x, 15.0f + hitButton.y, 20, BLACK);
+            DrawRectangleRec(doubleDownButton, BLUE);
+            DrawText("DOUBLE", 15.0f + doubleDownButton.x, 15.0f + doubleDownButton.y, 20, BLACK);
             DrawRectangleRec(standButton, RED);
             DrawText("STAND", standButton.x + 25, standButton.y + 15, 20, BLACK);
             DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
