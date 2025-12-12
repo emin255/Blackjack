@@ -151,11 +151,16 @@ int main(void)
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, doubleDownButton)) {
-                    kart_cek(&oyuncu,deste,&kart_sayisi);
-                    PlaySound(kartcekmesesi);
-                    bahis *= 2;
-                    mevcutDurum = STATE_KASA_TURU;
-                    kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
+                    if (oyuncu.kart_sayi == 2) {
+                        if (oyuncu.bakiye>=bahis) {
+                            kart_cek(&oyuncu,deste,&kart_sayisi);
+                            PlaySound(kartcekmesesi);
+                            bahis *= 2;
+                            mevcutDurum = STATE_KASA_TURU;
+                            kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
+                        }
+                    }
+
                 }
                 break;
             case STATE_KASA_TURU:
