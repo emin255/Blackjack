@@ -1,18 +1,17 @@
 #include "raylib.h"
 #include "blackjack.h"
 #include "string.h"
-
 const float CARD_WIDTH = 84.0f;
 const float CARD_HEIGHT = 120.0f;
-const Rectangle hitButton = { 100, 600, 100, 50 };
-const Rectangle doubleDownButton = {220, 600, 100, 50 };
-const Rectangle standButton = { 340, 600, 100, 50 };
-const Rectangle tekrarOynaButton = { 100, 600, 220, 50 };
-const Rectangle bahis10arttirbutton = { 100, 600, 100, 50 };
-const Rectangle bahis50arttirbutton = { 210, 600, 100, 50 };
-const Rectangle bahis100arttirbutton = { 320, 600, 100, 50 };
-const Rectangle bahissifirlabutton = { 430, 600, 100, 50 };
-const Rectangle bahiskoy = { 540, 600, 100, 50 };
+const Rectangle hitButton = { 760, 750, 100, 40 };
+const Rectangle doubleDownButton = {880, 750, 100, 40 };
+const Rectangle standButton = { 1000, 750, 100, 40 };
+const Rectangle tekrarOynaButton = { 850, 750, 220, 40 };
+const Rectangle bahis10arttirbutton = { 780, 750, 40, 40 };
+const Rectangle bahis50arttirbutton = { 830, 750, 40, 40 };
+const Rectangle bahis100arttirbutton = { 880, 750, 40, 40 };
+const Rectangle bahissifirlabutton = { 930, 750, 100, 40 };
+const Rectangle bahiskoy = { 1040, 750, 100, 40 };
 typedef enum{
     STATE_BAHİS,         // Bahis Zamanı
     STATE_KART_DAGIT,    // El başlıyor
@@ -37,7 +36,7 @@ void yeni_el(struct oyuncu* oyuncu, struct oyuncu* krupiyer, struct kart* deste,
     krupiyer->kart_sayi += 2;
     oyuncu->kart_sayi += 2;
 }
-void el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
+void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
         Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
         if (gizle == 0 && i == 0) {
@@ -48,6 +47,13 @@ void el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizl
             Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + 10.0f)), vector2.y };
             DrawTextureRec(spritesheet, sourcerec, drawPos, WHITE);
         }
+    }
+}
+void oyuncu_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2) {
+    for (int i = 0; i<oyuncu->kart_sayi;i++) {
+        Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
+        Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + -40.0f)), vector2.y-i*20 };
+        DrawTextureRec(spritesheet, sourcerec, drawPos, WHITE);
     }
 }
 void kartlarbittimi(int *kart_sayisi,struct kart* deste) {
@@ -84,9 +90,11 @@ int main(void)
 
     SetTargetFPS(60);
     Texture2D cardSpriteSheet = LoadTexture("cards.png");
+    Texture2D masa = LoadTexture("masa.png");
     Sound kartcekmesesi = LoadSound("ses.ogg");
     Music arkaplan = LoadMusicStream("arkaplan.ogg");
     PlayMusicStream(arkaplan);
+    DrawTexture(masa,0,0,WHITE);
 
     if (cardSpriteSheet.id == 0) {
         TraceLog(LOG_FATAL, "HATA: 'cards.png' yüklenemedi! .exe'nin yanına kopyaladığınızdan emin olun.");
@@ -155,6 +163,7 @@ int main(void)
                         if (oyuncu.bakiye>=bahis) {
                             kart_cek(&oyuncu,deste,&kart_sayisi);
                             PlaySound(kartcekmesesi);
+                            oyuncu.bakiye -= bahis;
                             bahis *= 2;
                             mevcutDurum = STATE_KASA_TURU;
                             kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
@@ -212,41 +221,42 @@ int main(void)
                 break;
         }
         BeginDrawing();
+        DrawTexture(masa,-450,-270,WHITE);
         ClearBackground(DARKGREEN); // Casino masası rengi :)
 
-        el_ciz(&oyuncu,cardSpriteSheet,(Vector2){100,400},1);
-        el_ciz(&krupiyer,cardSpriteSheet,(Vector2){100,200},kart_kapali_mi);
+        oyuncu_el_ciz(&oyuncu,cardSpriteSheet,(Vector2){885, 595});
+        krupiyer_el_ciz(&krupiyer,cardSpriteSheet,(Vector2){700,80},kart_kapali_mi);
 
-        DrawText(TextFormat("Skor %d",oyuncu.value),100,550,20,WHITE);
+        DrawText(TextFormat("Skor %d",oyuncu.value),890,550,20,WHITE);
         if (mevcutDurum == STATE_BAHİS) {
             DrawRectangleRec(bahis10arttirbutton, LIME);
-            DrawText("+10", 35 + bahis10arttirbutton.x, 15 + bahis10arttirbutton.y, 20, BLACK);
+            DrawText("+10",  5 + bahis10arttirbutton.x, 15+ bahis10arttirbutton.y, 14, BLACK);
             DrawRectangleRec(bahis50arttirbutton, RED);
-            DrawText("+50", bahis50arttirbutton.x + 15 , bahis50arttirbutton.y + 15, 20, BLACK);
+            DrawText("+50", bahis50arttirbutton.x + 5, bahis50arttirbutton.y + 15, 14, BLACK);
             DrawRectangleRec(bahis100arttirbutton, RED);
-            DrawText("+100", bahis100arttirbutton.x+15, bahis100arttirbutton.y + 15, 20, BLACK);
+            DrawText("+100", bahis100arttirbutton.x+5, bahis100arttirbutton.y + 15, 14, BLACK);
             DrawRectangleRec(bahissifirlabutton, RED);
-            DrawText("bahsi sifirla", bahissifirlabutton.x , bahissifirlabutton.y +15, 20, BLACK);
+            DrawText("bahsi sifirla", 10.0f+bahissifirlabutton.x , bahissifirlabutton.y +15, 14, BLACK);
             DrawRectangleRec(bahiskoy, RED);
-            DrawText("bahsi koy", bahiskoy.x , bahiskoy.y + 15, 20, BLACK);
-            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
-            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
+            DrawText("bahsi koy", bahiskoy.x + 10, bahiskoy.y + 15, 14, BLACK);
+            DrawText(TextFormat("BAHIS = %d",bahis),880.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),880.0f,840.0f,20.0f,WHITE);
         }
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
             DrawRectangleRec(hitButton, LIME);
-            DrawText("HIT", 35.0f + hitButton.x, 15.0f + hitButton.y, 20, BLACK);
+            DrawText("HIT", 35.0f + hitButton.x, 10.0f + hitButton.y, 20, BLACK);
             DrawRectangleRec(doubleDownButton, BLUE);
-            DrawText("DOUBLE", 15.0f + doubleDownButton.x, 15.0f + doubleDownButton.y, 20, BLACK);
+            DrawText("DOUBLE", 15.0f + doubleDownButton.x, 10.0f + doubleDownButton.y, 20, BLACK);
             DrawRectangleRec(standButton, RED);
-            DrawText("STAND", standButton.x + 25, standButton.y + 15, 20, BLACK);
-            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
-            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
+            DrawText("STAND", standButton.x + 20, standButton.y + 10, 20, BLACK);
+            DrawText(TextFormat("BAHIS = %d",bahis),880.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),880.0f,840.0f,20.0f,WHITE);
         } else if (mevcutDurum == STATE_SONUC) {
-            DrawText(TextFormat("%s",oyun_sonucu),100,360,20,WHITE);
+            DrawText(TextFormat("%s",oyun_sonucu),880,250,20,WHITE);
             DrawRectangleRec(tekrarOynaButton, BLUE);
             DrawText("TEKRAR OYNA", tekrarOynaButton.x + 40, tekrarOynaButton.y + 15, 20, WHITE);
-            DrawText(TextFormat("BAHIS = %d",bahis),100.0f,800.0f,20.0f,WHITE);
-            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),100.0f,840.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAHIS = %d",bahis),880.0f,800.0f,20.0f,WHITE);
+            DrawText(TextFormat("BAKIYE = %d",oyuncu.bakiye),880.0f,840.0f,20.0f,WHITE);
         }
         EndDrawing();
     }
