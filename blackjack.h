@@ -1,5 +1,4 @@
 
-
 #ifndef BLACKJACK_BLACKJACK_H
 #define BLACKJACK_BLACKJACK_H
 struct kart {
@@ -11,6 +10,7 @@ struct kart {
 };
 struct oyuncu {
     int bakiye;
+    int isDoubled;
     int value ;
     int kart_sayi;
     struct kart el[5];

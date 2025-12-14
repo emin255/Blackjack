@@ -3,8 +3,8 @@
 #include "string.h"
 const float CARD_WIDTH = 84.0f;
 const float CARD_HEIGHT = 120.0f;
-const Rectangle hitButton = { 760, 750, 100, 40 };
-const Rectangle doubleDownButton = {880, 750, 100, 40 };
+const Rectangle hitButton = { 880, 750, 100, 40 };
+const Rectangle doubleDownButton = {760, 750, 100, 40 };
 const Rectangle standButton = { 1000, 750, 100, 40 };
 const Rectangle tekrarOynaButton = { 850, 750, 220, 40 };
 const Rectangle bahis10arttirbutton = { 780, 750, 40, 40 };
@@ -133,6 +133,7 @@ int main(void)
                 }
                 break;
             case STATE_KART_DAGIT:
+                oyuncu.isDoubled = 0;
                 strcpy(oyun_sonucu,"      ");
                 kartlarbittimi(&kart_sayisi, deste);
                 kart_kapali_mi = 0;
@@ -153,6 +154,7 @@ int main(void)
                     kart_cek(&oyuncu,deste,&kart_sayisi);
                     PlaySound(kartcekmesesi);
                     oyuncu.value = oyuncu_el_degeri(&oyuncu);
+                    oyuncu.isDoubled=1;
                 }
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)&&CheckCollisionPointRec(mousepos, standButton)) {
                     mevcutDurum = STATE_KASA_TURU;
@@ -203,7 +205,6 @@ int main(void)
                     }
                     else if (sonuc==1) {
                         strcpy(oyun_sonucu,"oyuncu kazandi");
-                        oyuncu.bakiye += bahis*2;
                     }
                     else if (sonuc==2) {
                         strcpy(oyun_sonucu,"oyuncu patladi");
@@ -245,8 +246,10 @@ int main(void)
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
             DrawRectangleRec(hitButton, LIME);
             DrawText("HIT", 35.0f + hitButton.x, 10.0f + hitButton.y, 20, BLACK);
-            DrawRectangleRec(doubleDownButton, BLUE);
-            DrawText("DOUBLE", 15.0f + doubleDownButton.x, 10.0f + doubleDownButton.y, 20, BLACK);
+            if (oyuncu.isDoubled == 0) {
+                DrawRectangleRec(doubleDownButton, BLUE);
+                DrawText("DOUBLE", 15.0f + doubleDownButton.x, 10.0f + doubleDownButton.y, 20, BLACK);
+            }
             DrawRectangleRec(standButton, RED);
             DrawText("STAND", standButton.x + 20, standButton.y + 10, 20, BLACK);
             DrawText(TextFormat("BAHIS = %d",bahis),880.0f,800.0f,20.0f,WHITE);

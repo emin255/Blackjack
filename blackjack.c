@@ -79,7 +79,6 @@ int oyuncu_el_degeri(struct oyuncu* oyuncu) {
         el = el - 10;
         as_sayisi--;
     }
-    printf("Oyuncunun el değeri %d",el);
     return el;
 }
 void desteyi_karistir(struct kart deste[]) {
@@ -97,5 +96,4 @@ void kart_cek(struct oyuncu* oyuncu, struct kart deste[],int* kart_sayisi) {
     oyuncu->el[oyuncu->kart_sayi] = deste[*kart_sayisi];
     (*kart_sayisi)++;
     oyuncu->kart_sayi++;
-
 }
