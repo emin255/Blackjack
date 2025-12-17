@@ -9,6 +9,9 @@ struct kart {
     char isim[3];
 };
 struct oyuncu {
+    char sonuc[30];
+    int isActive;
+    int bahis;
     int bakiye;
     int isDoubled;
     int value ;

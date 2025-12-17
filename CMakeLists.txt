@@ -11,4 +11,4 @@ add_executable(Blackjack main.c
         blackjack.c)
 
 # 3. Kütüphaneyi bağla (Linker'a Raylib'i kullan diyoruz)
-target_link_libraries(Blackjack raylib)
+target_link_libraries(Blackjack raylib m)
