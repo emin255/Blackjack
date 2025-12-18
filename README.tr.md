@@ -14,8 +14,9 @@ Tam Oyun Döngüsü:
 Oyuncu Ekleme -> Bahis -> Kart Dağıtma -> Oyuncu Turu (Hit/Stand/Double) -> Kasa Turu -> Sonuç Hesaplama.
 
 Ses ve Müzik: Arkaplan müziği ve kart çekme efektleri.
-------------------------------------------------------------------------------------
+
 Kurulum ve Derleme
+------------------------------------------------------------------------------------
 Bu projeyi derlemek için bilgisayarınızda bir C derleyicisi (GCC/Clang), CMake ve Raylib kütüphanesinin yüklü olması gerekir.
 
 Gereksinimler
@@ -49,8 +50,8 @@ Not: cards.png, masa.png, ses.ogg ve arkaplan.ogg dosyalarının çalıştırıl
 Bash
 
 ./Blackjack
-------------------------------------------------------------------------------------
 Nasıl Oynanır?
+------------------------------------------------------------------------------------
 Giriş Ekranı: Masadaki boş koltukları doldurmak için "Oyuncu Ekle" butonuna basın. Yeterli sayıya ulaşınca "Oyun Başlasın"a tıklayın.
 
 Bahis Ekranı: Her oyuncu sırayla bahis miktarını belirler (+10, +50, +100 butonları ile) ve "Bahsi Koy" butonuna basar.
@@ -66,8 +67,8 @@ DOUBLE: Bahsi ikiye katla ve sadece bir kart çek (Sadece ilk iki kartta aktif).
 Kasa Turu: Kasa 17'ye ulaşana kadar kart çeker.
 
 Sonuç: Kazananlar belirlenir, bakiyeler güncellenir ve "Tekrar Oyna" seçeneği belirir.
-------------------------------------------------------------------------------------
 Proje Yapısı
+------------------------------------------------------------------------------------
 main.c: Oyun döngüsü, Raylib çizim fonksiyonları, UI yerleşimi ve giriş (input) yönetimi.
 
 blackjack.c: Oyunun temel mantığı (Deste oluşturma, karıştırma, puan hesaplama, kazananı belirleme).
