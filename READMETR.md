@@ -89,3 +89,26 @@ Vector2 butonPos = {
     koltukPos.y + (ileri.y * mesafe) 
 };
 Bu sayede tüm butonlar ve yazılar, oyuncunun oturduğu koltuğun açısına göre otomatik olarak hizalanır.
+
+
+### Oyun Akış Şeması (State Machine)
+
+```mermaid
+stateDiagram-v2
+    [*] --> OYUNCU_EKLE: Başlat
+    OYUNCU_EKLE --> BAHIS: "Başla" Butonu
+    BAHIS --> KART_DAGIT: Bahisler Tamamlandığında
+    KART_DAGIT --> OYUNCU_TURU: Kartlar Dağıtıldı
+    
+    state OYUNCU_TURU {
+        [*] --> KararBekleniyor
+        KararBekleniyor --> KartCek: HIT
+        KararBekleniyor --> TuruGec: STAND
+        KararBekleniyor --> IkiyeKatla: DOUBLE
+        KartCek --> KararBekleniyor: < 21
+        KartCek --> TuruGec: >= 21
+    }
+
+    OYUNCU_TURU --> KASA_TURU: Tüm Oyuncular Bittiğinde
+    KASA_TURU --> SONUC: Kasa 17'yi Geçince
+    SONUC --> OYUNCU_EKLE: "Tekrar Oyna" Butonu
