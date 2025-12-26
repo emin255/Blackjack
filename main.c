@@ -218,18 +218,52 @@ int main(void)
             case STATE_BAHİS:// Bahis
                 hesaplandi_mi = 0;
                 struct oyuncu *suanki_oyuncu = &oyuncular[siradaki_oyuncu];//Sıradakı Oyuncuyu bulur
+
+                Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
+                float aci = koltuk_acilari[siradaki_oyuncu];
+                float rad = aci * DEG2RAD;
+
+                // Vektörel hesaplama
+                float s = sinf(rad);
+                float c = cosf(rad);
+                Vector2 ileri = { -s, c };
+                Vector2 sag   = { c, s };
+
+                float kucukayrilik = 50.0f;
+                float bahiskoyayrılık = 80.0f;
+                float bahissıfırlaayrılık = 95.0f;
+                float uzaklık = 150.0f;
+                Vector2 btnMerkez = {
+                    pos.x + (ileri.x*uzaklık),
+                    pos.y + (ileri.y*uzaklık)
+                };
+
+                Vector2 kucukorigin = {20,20};
+                Vector2 buyukorigin = {50,20};
+                Vector2 bahis100pos = {btnMerkez.x, btnMerkez.y};
+                Vector2 bahis50pos = {btnMerkez.x-(sag.x*kucukayrilik), btnMerkez.y-(sag.y*kucukayrilik)};
+                Vector2 bahis10pos = {btnMerkez.x-2*(sag.x*kucukayrilik), btnMerkez.y-2*(sag.y*kucukayrilik)};
+                Vector2 bahiskoypos = {btnMerkez.x+(sag.x*bahiskoyayrılık), btnMerkez.y+(sag.y*bahiskoyayrılık)};
+                Vector2 bahissifirlapos = {btnMerkez.x+2*(sag.x*bahissıfırlaayrılık), btnMerkez.y+2*(sag.y*bahissıfırlaayrılık)};
+
+                Rectangle bahis10Rect = {bahis10pos.x,bahis10pos.y,40,40};
+                Rectangle bahis50Rect = {bahis50pos.x,bahis50pos.y,40,40};
+                Rectangle bahis100Rect = {bahis100pos.x,bahis100pos.y,40,40};
+                Rectangle bahiskoyRect = {bahiskoypos.x,bahiskoypos.y,100,40};
+                Rectangle bahissifirlaRect = {bahissifirlapos.x,bahissifirlapos.y,100,40};
+
                 if (suanki_oyuncu->isActive == 1) {//oyuncu aktifse fonksiyonları çalıştır
                     if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                        if (CheckCollisionPointRec(mousepos, bahis10arttirbutton)) {
+                        if (CheckCollisionRotatedRec(mousepos,bahis10Rect,aci)) {
                             suanki_oyuncu->bahis += 10;
                         }
-                        if (CheckCollisionPointRec(mousepos, bahis50arttirbutton)) {
+                        if (CheckCollisionRotatedRec(mousepos,bahis50Rect,aci)) {
                             suanki_oyuncu->bahis += 50;
                         }
-                        if (CheckCollisionPointRec(mousepos, bahis100arttirbutton)) {
+                        if (CheckCollisionRotatedRec(mousepos,bahis100Rect,aci)) {
                             suanki_oyuncu->bahis += 100;
                         }
-                        if (CheckCollisionPointRec(mousepos, bahiskoy)) {
+                        if (CheckCollisionRotatedRec(mousepos,bahiskoyRect,aci)) {
                             suanki_oyuncu->bakiye -= suanki_oyuncu->bahis;
 
                             // Bir sonraki aktif oyuncuyu bul
@@ -241,7 +275,7 @@ int main(void)
                                 mevcutDurum = STATE_KART_DAGIT;
                             }
                         }
-                        if (CheckCollisionPointRec(mousepos, bahissifirlabutton)) {
+                        if (CheckCollisionRotatedRec(mousepos,bahissifirlaRect,aci)) {
                             suanki_oyuncu->bahis = 0;
                         }
                     }
@@ -273,22 +307,22 @@ int main(void)
                 }
 
                 struct oyuncu *aktif_oyuncu = &oyuncular[siradaki_oyuncu];
-                Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
-                float aci = koltuk_acilari[siradaki_oyuncu];
-                float rad = aci * DEG2RAD;
+                Vector2 pos2 = koltuk_konumlari[siradaki_oyuncu];
+                float aci2 = koltuk_acilari[siradaki_oyuncu];
+                float rad2 = aci2 * DEG2RAD;
 
                 // Vektörler
-                float s = sinf(rad);
-                float c = cosf(rad);
-                Vector2 ileri = { -s, c };
-                Vector2 sag   = { c, s };
+                float s2 = sinf(rad2);
+                float c2 = cosf(rad2);
+                Vector2 ileri2 = { -s2, c2 };
+                Vector2 sag2   = { c2, s2 };
 
                 // --- YENİ KONUMLANDIRMA ---
                 // 1. Double Butonu: Kartlara daha yakın (100 birim)
                 float doubleDist = 100.0f;
                 Vector2 doublePos = {
-                    pos.x + (ileri.x * doubleDist),
-                    pos.y + (ileri.y * doubleDist)
+                    pos2.x + (ileri2.x * doubleDist),
+                    pos2.y + (ileri2.y * doubleDist)
                 };
 
                 // 2. Hit ve Stand: Double'ın altında (150 birim)
@@ -296,19 +330,19 @@ int main(void)
                 float ayrilik = 55.0f; // Sağa sola açılma
 
                 // Ortak merkez (Hit/Stand hizası)
-                Vector2 btnMerkez = {
-                    pos.x + (ileri.x * hitStandDist),
-                    pos.y + (ileri.y * hitStandDist)
+                Vector2 btnMerkez2 = {
+                    pos2.x + (ileri2.x * hitStandDist),
+                    pos2.y + (ileri2.y * hitStandDist)
                 };
 
                 Vector2 hitPos = {
-                    btnMerkez.x - (sag.x * ayrilik),
-                    btnMerkez.y - (sag.y * ayrilik)
+                    btnMerkez2.x - (sag2.x * ayrilik),
+                    btnMerkez2.y - (sag2.y * ayrilik)
                 };
 
                 Vector2 standPos = {
-                    btnMerkez.x + (sag.x * ayrilik),
-                    btnMerkez.y + (sag.y * ayrilik)
+                    btnMerkez2.x + (sag2.x * ayrilik),
+                    btnMerkez2.y + (sag2.y * ayrilik)
                 };
 
                 // Rectangle Tanımları
@@ -330,7 +364,7 @@ int main(void)
                     // --- TIKLAMA KONTROLLERİ ---
 
                     // HIT BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, hitRect, aci)) {
+                    if(CheckCollisionRotatedRec(mousepos, hitRect, aci2)) {
                         kartlarbittimi(&kart_sayisi, uzundeste);
                         kart_cek(aktif_oyuncu, uzundeste, &kart_sayisi);
                         PlaySound(kartcekmesesi);
@@ -338,7 +372,7 @@ int main(void)
                     }
 
                     // STAND BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, standRect, aci)) {
+                    if(CheckCollisionRotatedRec(mousepos, standRect, aci2)) {
                         do { siradaki_oyuncu++; }
                         while (siradaki_oyuncu < MAX_SEATS && !oyuncular[siradaki_oyuncu].isActive);
 
@@ -349,7 +383,7 @@ int main(void)
                     }
 
                     // DOUBLE BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, doubleRect, aci)) {
+                    if(CheckCollisionRotatedRec(mousepos, doubleRect, aci2)) {
                         if (aktif_oyuncu->kart_sayi == 2 && aktif_oyuncu->bakiye >= aktif_oyuncu->bahis) {
                             aktif_oyuncu->bakiye -= aktif_oyuncu->bahis;
                             aktif_oyuncu->bahis *= 2;
@@ -498,17 +532,51 @@ int main(void)
             DrawText(TextFormat("Oyuncu Sayisi %d ",oyuncu_sayisi),850.0f,300.0f,20.0f,WHITE);
         }
         else if (mevcutDurum == STATE_BAHİS) {
-            //butonlar çizilir
-            DrawRectangleRec(bahis10arttirbutton, LIME);
-            DrawText("+10",  5 + bahis10arttirbutton.x, 15+ bahis10arttirbutton.y, 14, BLACK);
-            DrawRectangleRec(bahis50arttirbutton, RED);
-            DrawText("+50", bahis50arttirbutton.x + 5, bahis50arttirbutton.y + 15, 14, BLACK);
-            DrawRectangleRec(bahis100arttirbutton, RED);
-            DrawText("+100", bahis100arttirbutton.x+5, bahis100arttirbutton.y + 15, 14, BLACK);
-            DrawRectangleRec(bahissifirlabutton, RED);
-            DrawText("bahsi sifirla", 10.0f+bahissifirlabutton.x , bahissifirlabutton.y +15, 14, BLACK);
-            DrawRectangleRec(bahiskoy, RED);
-            DrawText("bahsi koy", bahiskoy.x + 10, bahiskoy.y + 15, 14, BLACK);
+            Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
+            float aci = koltuk_acilari[siradaki_oyuncu];
+            float rad = aci * DEG2RAD;
+
+            // Vektörel hesaplama
+            float s = sinf(rad);
+            float c = cosf(rad);
+            Vector2 ileri = { -s, c };
+            Vector2 sag   = { c, s };
+
+            float kucukayrilik = 50.0f;
+            float bahiskoyayrılık = 80.0f;
+            float bahissıfırlaayrılık = 95.0f;
+            float uzaklık = 150.0f;
+            Vector2 btnMerkez = {
+                pos.x + (ileri.x*uzaklık),
+                pos.y + (ileri.y*uzaklık)
+            };
+
+            Vector2 kucukorigin = {20,20};
+            Vector2 buyukorigin = {50,20};
+            Vector2 bahis100pos = {btnMerkez.x, btnMerkez.y};
+            Vector2 bahis50pos = {btnMerkez.x-(sag.x*kucukayrilik), btnMerkez.y-(sag.y*kucukayrilik)};
+            Vector2 bahis10pos = {btnMerkez.x-2*(sag.x*kucukayrilik), btnMerkez.y-2*(sag.y*kucukayrilik)};
+            Vector2 bahiskoypos = {btnMerkez.x+(sag.x*bahiskoyayrılık), btnMerkez.y+(sag.y*bahiskoyayrılık)};
+            Vector2 bahissifirlapos = {btnMerkez.x+2*(sag.x*bahissıfırlaayrılık), btnMerkez.y+2*(sag.y*bahissıfırlaayrılık)};
+
+            Rectangle bahis10Rect = {bahis10pos.x,bahis10pos.y,40,40};
+            Rectangle bahis50Rect = {bahis50pos.x,bahis50pos.y,40,40};
+            Rectangle bahis100Rect = {bahis100pos.x,bahis100pos.y,40,40};
+            Rectangle bahiskoyRect = {bahiskoypos.x,bahiskoypos.y,100,40};
+            Rectangle bahissifirlaRect = {bahissifirlapos.x,bahissifirlapos.y,100,40};
+
+            DrawRectanglePro(bahis10Rect,kucukorigin,aci,RED);
+            DrawRectanglePro(bahis50Rect,kucukorigin,aci,RED);
+            DrawRectanglePro(bahis100Rect,kucukorigin,aci,RED);
+            DrawRectanglePro(bahiskoyRect,buyukorigin,aci,GREEN);
+            DrawRectanglePro(bahissifirlaRect,buyukorigin,aci,BLUE);
+
+            YazıCizDondur("+10",bahis10Rect.x,bahis10Rect.y, aci, 14,WHITE);
+            YazıCizDondur("+50",bahis50Rect.x,bahis50Rect.y, aci, 14,WHITE);
+            YazıCizDondur("+100",bahis100Rect.x,bahis100Rect.y, aci, 14,WHITE);
+            YazıCizDondur("Bahsi Koy",bahiskoyRect.x,bahiskoyRect.y, aci, 14,WHITE);
+            YazıCizDondur("Bahsi Sifirla",bahissifirlaRect.x,bahissifirlaRect.y, aci, 14,WHITE);
+
         }
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
             Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
