@@ -20,7 +20,7 @@ float FloatLerp(float start, float end, float amount) {
     return start + amount * (end - start);
 }
 //Yazıları Döndüren Fonksiyon
-void YazıCizDondur(const char* text, float x,float y, float aci, int fontSize,Color color) {
+void YaziCizDondur(const char* text, float x,float y, float aci, int fontSize,Color color) {
     Font font = GetFontDefault();
 
     Vector2 textSize = MeasureTextEx(font,text,fontSize,1);
@@ -543,14 +543,14 @@ int main(void)
                     pos.y + (isimDist * c)
                 };
                 // --- YAZILARI ÇİZ ---
-                YazıCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x, skorPos.y, aci, 20, WHITE);
-                YazıCizDondur(TextFormat("Bahis: %d", oyuncular[i].bahis), bahisPos.x, bahisPos.y, aci, 18, YELLOW);
-                YazıCizDondur(TextFormat("Bakiye: %d", oyuncular[i].bakiye), bakiyePos.x, bakiyePos.y, aci, 18, GREEN);
-                YazıCizDondur(TextFormat("Oyuncu %d", i+1), isimPos.x, isimPos.y, aci, 20, LIGHTGRAY);
+                YaziCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x, skorPos.y, aci, 20, WHITE);
+                YaziCizDondur(TextFormat("Bahis: %d", oyuncular[i].bahis), bahisPos.x, bahisPos.y, aci, 18, YELLOW);
+                YaziCizDondur(TextFormat("Bakiye: %d", oyuncular[i].bakiye), bakiyePos.x, bakiyePos.y, aci, 18, GREEN);
+                YaziCizDondur(TextFormat("Oyuncu %d", i+1), isimPos.x, isimPos.y, aci, 20, LIGHTGRAY);
 
                 // SONUÇ YAZISI (KAZANDIN/KAYBETTİN) - Tam kartların ortasına
                 if(mevcutDurum == STATE_SONUC) {
-                     YazıCizDondur(oyuncular[i].sonuc, pos.x, pos.y, aci, 26, RED);
+                     YaziCizDondur(oyuncular[i].sonuc, pos.x, pos.y, aci, 26, RED);
                 }
             }
         }
@@ -578,12 +578,12 @@ int main(void)
             Vector2 sag   = { c, s };
 
             float kucukayrilik = 50.0f;
-            float bahiskoyayrılık = 80.0f;
-            float bahissıfırlaayrılık = 95.0f;
-            float uzaklık = 150.0f;
+            float bahiskoyayrilik = 80.0f;
+            float bahissifırlaayrilik = 95.0f;
+            float uzaklik = 150.0f;
             Vector2 btnMerkez = {
-                pos.x + (ileri.x*uzaklık),
-                pos.y + (ileri.y*uzaklık)
+                pos.x + (ileri.x*uzaklik),
+                pos.y + (ileri.y*uzaklik)
             };
 
             Vector2 kucukorigin = {20,20};
@@ -591,8 +591,8 @@ int main(void)
             Vector2 bahis100pos = {btnMerkez.x, btnMerkez.y};
             Vector2 bahis50pos = {btnMerkez.x-(sag.x*kucukayrilik), btnMerkez.y-(sag.y*kucukayrilik)};
             Vector2 bahis10pos = {btnMerkez.x-2*(sag.x*kucukayrilik), btnMerkez.y-2*(sag.y*kucukayrilik)};
-            Vector2 bahiskoypos = {btnMerkez.x+(sag.x*bahiskoyayrılık), btnMerkez.y+(sag.y*bahiskoyayrılık)};
-            Vector2 bahissifirlapos = {btnMerkez.x+2*(sag.x*bahissıfırlaayrılık), btnMerkez.y+2*(sag.y*bahissıfırlaayrılık)};
+            Vector2 bahiskoypos = {btnMerkez.x+(sag.x*bahiskoyayrilik), btnMerkez.y+(sag.y*bahiskoyayrilik)};
+            Vector2 bahissifirlapos = {btnMerkez.x+2*(sag.x*bahissifırlaayrilik), btnMerkez.y+2*(sag.y*bahissifırlaayrilik)};
 
             Rectangle bahis10Rect = {bahis10pos.x,bahis10pos.y,40,40};
             Rectangle bahis50Rect = {bahis50pos.x,bahis50pos.y,40,40};
@@ -606,11 +606,11 @@ int main(void)
             DrawRectanglePro(bahiskoyRect,buyukorigin,aci,GREEN);
             DrawRectanglePro(bahissifirlaRect,buyukorigin,aci,BLUE);
 
-            YazıCizDondur("+10",bahis10Rect.x,bahis10Rect.y, aci, 14,WHITE);
-            YazıCizDondur("+50",bahis50Rect.x,bahis50Rect.y, aci, 14,WHITE);
-            YazıCizDondur("+100",bahis100Rect.x,bahis100Rect.y, aci, 14,WHITE);
-            YazıCizDondur("Bahsi Koy",bahiskoyRect.x,bahiskoyRect.y, aci, 14,WHITE);
-            YazıCizDondur("Bahsi Sifirla",bahissifirlaRect.x,bahissifirlaRect.y, aci, 14,WHITE);
+            YaziCizDondur("+10",bahis10Rect.x,bahis10Rect.y, aci, 14,WHITE);
+            YaziCizDondur("+50",bahis50Rect.x,bahis50Rect.y, aci, 14,WHITE);
+            YaziCizDondur("+100",bahis100Rect.x,bahis100Rect.y, aci, 14,WHITE);
+            YaziCizDondur("Bahsi Koy",bahiskoyRect.x,bahiskoyRect.y, aci, 14,WHITE);
+            YaziCizDondur("Bahsi Sifirla",bahissifirlaRect.x,bahissifirlaRect.y, aci, 14,WHITE);
 
         }
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
@@ -649,14 +649,14 @@ int main(void)
 
             // ÇİZİM
             DrawRectanglePro(hitRect, btnOrigin, aci, LIME);
-            YazıCizDondur("HIT", hitPos.x, hitPos.y, aci, 20, BLACK);
+            YaziCizDondur("HIT", hitPos.x, hitPos.y, aci, 20, BLACK);
 
             DrawRectanglePro(standRect, btnOrigin, aci, RED);
-            YazıCizDondur("STAND", standPos.x, standPos.y, aci, 20, WHITE);
+            YaziCizDondur("STAND", standPos.x, standPos.y, aci, 20, WHITE);
 
             if (oyuncular[siradaki_oyuncu].kart_sayi == 2) {
                 DrawRectanglePro(doubleRect, btnOrigin, aci, BLUE);
-                YazıCizDondur("2 KAT", doublePos.x, doublePos.y, aci, 20, WHITE);
+                YaziCizDondur("2 KAT", doublePos.x, doublePos.y, aci, 20, WHITE);
             }
         } else if (mevcutDurum == STATE_SONUC) {
             char oyun_sonucu[30];
