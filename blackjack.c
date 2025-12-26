@@ -97,3 +97,14 @@ void kart_cek(struct oyuncu* oyuncu, struct kart deste[],int* kart_sayisi) {
     (*kart_sayisi)++;
     oyuncu->kart_sayi++;
 }
+void uzundesteyikaristir(struct kart deste[])
+{
+    srand(time(NULL));
+    for (int j = 363; j > 0; j--) {
+        int a = rand()%(j+1);
+
+        struct kart gecici = deste[a];
+        deste[a] = deste[j];
+        deste[j] = gecici;
+    }
+}

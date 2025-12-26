@@ -20,6 +20,7 @@ struct oyuncu {
 };
 int kazanan(struct oyuncu* oyuncu, struct oyuncu* krupiyer);
 void deste_olustur(struct kart deste[52]);
+void uzundesteyikaristir(struct kart deste[]);
 int oyuncu_el_degeri(struct oyuncu* oyuncu);
 void desteyi_karistir(struct kart deste[]);
 void kart_cek(struct oyuncu* oyuncu, struct kart deste[],int* kart_sayisi);
