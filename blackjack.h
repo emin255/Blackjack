@@ -1,4 +1,3 @@
-
 #ifndef BLACKJACK_BLACKJACK_H
 #define BLACKJACK_BLACKJACK_H
 struct kart {

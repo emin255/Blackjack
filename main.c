@@ -150,8 +150,8 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
                 continue;
             }
             hareket_var_mi = true;
-            aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.1f);
-            aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.1f);
+            aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.05f);
+            aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.05f);
 
             if (fabs(gorselPos.x - hedefKonum.x) < 1.0f &&
                 fabs(gorselPos.y - hedefKonum.y) < 1.0f) {
@@ -517,9 +517,6 @@ int main(void)
                 // 1. Kartları Çiz
                 oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci,global_animasyon_kilit);
 
-                // --- KOORDİNAT HESAPLARI (Açıya göre öteleme) ---
-
-                // SKOR: Kartların Üstünde (Mesafe: -90)
                 float skorDist = -90.0f;
                 Vector2 skorPos = {
                     pos.x - (skorDist * s),
