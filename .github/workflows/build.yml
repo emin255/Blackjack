@@ -1,0 +1,38 @@
+name: Windows Build
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Configure CMake
+        # Windows için yapılandırma oluşturuyoruz
+        run: cmake -B build -DCMAKE_BUILD_TYPE=Release
+
+      - name: Build
+        # Derleme işlemi (Release modunda)
+        run: cmake --build build --config Release
+
+      - name: Prepare Package
+        # Oyunun çalışması için gereken her şeyi 'dist' klasörüne topluyoruz
+        run: |
+          mkdir dist
+          copy build\Release\Blackjack.exe dist\
+          copy *.png dist\
+          copy *.ogg dist\
+        shell: cmd
+
+      - name: Upload Artifact
+        # Hazırladığımız klasörü zipleyip GitHub'a yüklüyoruz
+        uses: actions/upload-artifact@v4
+        with:
+          name: Blackjack-Windows-Game
+          path: dist/
