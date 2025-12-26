@@ -16,7 +16,6 @@ const Rectangle bahissifirlabutton = { 930, 700, 100, 40 };
 const Rectangle bahiskoy = { 1040, 700, 100, 40 };
 const Rectangle oyuncuekle = { 880, 350, 100, 40  };
 const Rectangle oyuncuTamam = { 880, 400, 100, 40  };
-const Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
 
 // Linear Interpolation (Yumusak Gecis)
 float FloatLerp(float start, float end, float amount) {
@@ -126,6 +125,7 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
 void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
         if (gizle == 0 && i == 0) {
+            Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
             Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + 10.0f)), vector2.y };
             DrawTextureRec(spritesheet, kapali_kart, drawPos, WHITE);
         }else {
@@ -192,6 +192,7 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 // Ana Fonksiyon
 int main(void)
 {
+    Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
     bool global_animasyon_kilit = false;
     int sonuc;
     int siradaki_oyuncu = 0;
