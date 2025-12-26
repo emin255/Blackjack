@@ -41,6 +41,9 @@ void deste_olustur(struct kart deste[52]){
     for (int j = 0; j < 4; j++) {
         for (int i = 0; i < 13; i++) {
             hedef = j*13+i;
+            deste[hedef].mevcutKonumx = 400;
+            deste[hedef].mevcutkonumy = 150;
+            deste[hedef].vardımmı = 0;
             if (i==0) {
                 deste[hedef].value=11;
             }else if(i<10){

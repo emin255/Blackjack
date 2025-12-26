@@ -2,6 +2,9 @@
 #ifndef BLACKJACK_BLACKJACK_H
 #define BLACKJACK_BLACKJACK_H
 struct kart {
+    float mevcutKonumx;
+    float mevcutkonumy;
+    int vardımmı;
     int value;
     float konumx;
     float konumy;

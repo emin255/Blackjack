@@ -2,6 +2,7 @@
 #include "blackjack.h"
 #include "string.h"
 #include "math.h"
+const int MAX_CARD_COUNT = 364;
 const int MAX_SEATS = 5;
 const float CARD_WIDTH = 84.0f;
 const float CARD_HEIGHT = 120.0f;
@@ -13,6 +14,11 @@ const Rectangle bahissifirlabutton = { 930, 700, 100, 40 };
 const Rectangle bahiskoy = { 1040, 700, 100, 40 };
 const Rectangle oyuncuekle = { 880, 350, 100, 40  };
 const Rectangle oyuncuTamam = { 880, 400, 100, 40  };
+const Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
+// Linear Interpolation (Yumuşak Geçiş)
+float FloatLerp(float start, float end, float amount) {
+    return start + amount * (end - start);
+}
 //Yazıları Döndüren Fonksiyon
 void YazıCizDondur(const char* text, float x,float y, float aci, int fontSize,Color color) {
     Font font = GetFontDefault();
@@ -108,7 +114,6 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
 //Kryupiyerin kartlarını ekrana çizer
 void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
-        Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
         if (gizle == 0 && i == 0) {
             Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + 10.0f)), vector2.y };
             DrawTextureRec(spritesheet, kapali_kart, drawPos, WHITE);
@@ -120,7 +125,7 @@ void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2
     }
 }
 //Oyuncuların ellerini oturdukları konuma göre çizer
-void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, float aci) {
+void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, float aci,bool hareket_var_mi) {
     float radyan = aci * DEG2RAD; // Dereceyi Radyana çevir
     float kart_araligi = 30.0f;   // Kartlar arası mesafe
 
@@ -130,9 +135,36 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
         float shiftX = (i * kart_araligi) * cosf(radyan);
         float shiftY = (i * kart_araligi) * sinf(radyan);
 
-        Rectangle destRec = {
+        Vector2 hedefKonum = {
             pos.x + shiftX,
-            pos.y + shiftY,
+            pos.y + shiftY
+        };
+
+        struct kart *aktifKart = &oyuncu->el[i];
+        Vector2 gorselPos = {aktifKart->mevcutKonumx,aktifKart->mevcutkonumy};
+        if (i>0&&oyuncu->el[i-1].vardımmı == 0) {
+            continue;
+        }
+        if (aktifKart->vardımmı == 0) {
+            if (hareket_var_mi == true) {
+                continue;
+            }
+            hareket_var_mi = true;
+            aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.1f);
+            aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.1f);
+
+            if (fabs(gorselPos.x - hedefKonum.x) < 1.0f &&
+                fabs(gorselPos.y - hedefKonum.y) < 1.0f) {
+
+                gorselPos = hedefKonum;
+                aktifKart->vardımmı = 1;
+                }
+        } else {
+            gorselPos = hedefKonum;
+        }
+        Rectangle destRec = {
+            gorselPos.x,
+            gorselPos.y,
             CARD_WIDTH,
             CARD_HEIGHT
         };
@@ -145,13 +177,14 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 //Ana Fonksiyon
 int main(void)
 {
+    bool global_animasyon_kilit = false;
     int sonuc;
     int siradaki_oyuncu = 0;
     struct oyuncu oyuncular[5];
     int oyuncu_sayisi = 0;
     double kasaCekmeZamani = 0.0;
     const double kasaBeklemeSuresi = 1.0;
-    int kart_sayisi = 250;
+    int kart_sayisi = 0;
     int kart_kapali_mi = 0;
     const int screenWidth = 1900;
     const int screenHeight = 1000;
@@ -264,15 +297,19 @@ int main(void)
                             suanki_oyuncu->bahis += 100;
                         }
                         if (CheckCollisionRotatedRec(mousepos,bahiskoyRect,aci)) {
-                            suanki_oyuncu->bakiye -= suanki_oyuncu->bahis;
+                            if (suanki_oyuncu->bahis != 0) {
+                                if (suanki_oyuncu->bahis <= suanki_oyuncu->bakiye) {
+                                    suanki_oyuncu->bakiye -= suanki_oyuncu->bahis;
 
-                            // Bir sonraki aktif oyuncuyu bul
-                            do {
-                                siradaki_oyuncu++;
-                            } while (siradaki_oyuncu< 5 && !oyuncular[siradaki_oyuncu].isActive);
-                            // Eğer herkes bahsini koyduysa (index 5 olduysa) kart dağıt
-                            if (siradaki_oyuncu>= 5) {
-                                mevcutDurum = STATE_KART_DAGIT;
+                                    // Bir sonraki aktif oyuncuyu bul
+                                    do {
+                                        siradaki_oyuncu++;
+                                    } while (siradaki_oyuncu< 5 && !oyuncular[siradaki_oyuncu].isActive);
+                                    // Eğer herkes bahsini koyduysa (index 5 olduysa) kart dağıt
+                                    if (siradaki_oyuncu>= 5) {
+                                        mevcutDurum = STATE_KART_DAGIT;
+                                    }
+                                }
                             }
                         }
                         if (CheckCollisionRotatedRec(mousepos,bahissifirlaRect,aci)) {
@@ -381,7 +418,6 @@ int main(void)
                             kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                         }
                     }
-
                     // DOUBLE BUTONU
                     if(CheckCollisionRotatedRec(mousepos, doubleRect, aci2)) {
                         if (aktif_oyuncu->kart_sayi == 2 && aktif_oyuncu->bakiye >= aktif_oyuncu->bahis) {
@@ -465,6 +501,10 @@ int main(void)
         BeginDrawing();//Çizim Başlangıcı
         ClearBackground(DARKGREEN);
         DrawTexture(masa,-450,-270,WHITE);//Arkaya masa Görüntüsü ekler
+        for (int i = 0 ;i<MAX_CARD_COUNT-kart_sayisi;i++) {
+            Vector2 drawPos = { 200+(i * 1), 100};
+            DrawTextureRec(cardSpriteSheet, kapali_kart, drawPos, WHITE);
+        }
         for (int i = 0;i<MAX_SEATS;i++) {
             //sırdaki oyuncu aktif ise işlem yapar
             if (oyuncular[i].isActive == 1) {
@@ -475,7 +515,7 @@ int main(void)
                 float c = cosf(rad);
 
                 // 1. Kartları Çiz
-                oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci);
+                oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci,global_animasyon_kilit);
 
                 // --- KOORDİNAT HESAPLARI (Açıya göre öteleme) ---
 
@@ -499,14 +539,12 @@ int main(void)
                     pos.x - (bakiyeDist * s),
                     pos.y + (bakiyeDist * c)
                 };
-
                 // OYUNCU ADI: En Altta (Mesafe: +200)
                 float isimDist = 255.0f;
                 Vector2 isimPos = {
                     pos.x - (isimDist * s),
                     pos.y + (isimDist * c)
                 };
-
                 // --- YAZILARI ÇİZ ---
                 YazıCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x, skorPos.y, aci, 20, WHITE);
                 YazıCizDondur(TextFormat("Bahis: %d", oyuncular[i].bahis), bahisPos.x, bahisPos.y, aci, 18, YELLOW);
