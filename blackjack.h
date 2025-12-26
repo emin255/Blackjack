@@ -3,7 +3,7 @@
 struct kart {
     float mevcutKonumx;
     float mevcutkonumy;
-    int vardımmı;
+    int vardimmi;
     int value;
     float konumx;
     float konumy;

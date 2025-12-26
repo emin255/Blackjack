@@ -43,7 +43,7 @@ void deste_olustur(struct kart deste[52]){
             hedef = j*13+i;
             deste[hedef].mevcutKonumx = 400;
             deste[hedef].mevcutkonumy = 150;
-            deste[hedef].vardımmı = 0;
+            deste[hedef].vardimmi = 0;
             if (i==0) {
                 deste[hedef].value=11;
             }else if(i<10){
