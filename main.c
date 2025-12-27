@@ -91,19 +91,20 @@ void yenioyuncu(struct oyuncu* oyuncu) {
 }
 
 // kartlarin bitip bitmedigini kontrol eder
-void kartlarbittimi(int *kart_sayisi,struct kart* deste) {
+void kartlarbittimi(int *kart_sayisi,struct kart* deste,Sound karistirma) {
     if (*kart_sayisi >340) {
         *kart_sayisi = 0;
         uzundesteyikaristir(deste);
+        PlaySound(karistirma);
     }
 }
 
 // Yeni el baslatir kartlari dagitir
-void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* deste, int* kart_sayisi) {
+void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* deste, int* kart_sayisi,Sound karistirma) {
     krupiyer->kart_sayi = 0;
     for (int i = 0;i<MAX_SEATS;i++) {
         if (oyuncular[i].isActive == 1) {
-            kartlarbittimi(kart_sayisi,deste);
+            kartlarbittimi(kart_sayisi,deste,karistirma);
             oyuncular[i].kart_sayi = 0;
             oyuncular[i].el[0] = deste[*kart_sayisi];
             (*kart_sayisi)++;
@@ -227,6 +228,7 @@ int main(void)
     Texture2D cardSpriteSheet = LoadTexture("cards.png");
     Texture2D masa = LoadTexture("masa.png");
     Sound kartcekmesesi = LoadSound("ses.ogg");
+    Sound karistirmasesi = LoadSound("karistirma.ogg");
     Music arkaplan = LoadMusicStream("arkaplan.ogg");
     PlayMusicStream(arkaplan);
     DrawTexture(masa,0,0,WHITE);
@@ -246,7 +248,7 @@ int main(void)
             case STATE_OYUNCU_Ekle: // Oyuncu ekleme
                 if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
                     if (CheckCollisionPointRec(mousepos, oyuncuekle)){
-                        kartlarbittimi(&kart_sayisi, uzundeste);
+                        kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                         int gercek_koltuk_no = dolum_sirasi[oyuncu_sayisi];
                         oyuncular[gercek_koltuk_no].isActive=1;// Oyuncu konumlarini ortadan baslayarak ekler
                         oyuncu_sayisi++;
@@ -333,8 +335,8 @@ int main(void)
                 break;
 
             case STATE_KART_DAGIT:// kart dagitma
-                yeni_el(oyuncular, &krupiyer, uzundeste, &kart_sayisi);
-                kartlarbittimi(&kart_sayisi, uzundeste);
+                yeni_el(oyuncular, &krupiyer, uzundeste, &kart_sayisi,karistirmasesi);
+                kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                 // Degerleri hesapla (Herkes icin)
                 for(int i=0; i<5; i++) {
                     if(oyuncular[i].isActive) oyuncular[i].value = oyuncu_el_degeri(&oyuncular[i]);
@@ -414,7 +416,7 @@ int main(void)
 
                     // HIT BUTONU
                     if(CheckCollisionRotatedRec(mousepos, hitRect, aci2)) {
-                        kartlarbittimi(&kart_sayisi, uzundeste);
+                        kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                         kart_cek(aktif_oyuncu, uzundeste, &kart_sayisi);
                         PlaySound(kartcekmesesi);
                         aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu);
@@ -456,7 +458,7 @@ int main(void)
                 int kasa_durumu = oyuncu_el_degeri(&krupiyer);
                 if(kasa_durumu<17) {
                     if (GetTime() > kasaCekmeZamani) {
-                        kartlarbittimi(&kart_sayisi, uzundeste);
+                        kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                         PlaySound(kartcekmesesi);
                         kart_cek(&krupiyer,uzundeste,&kart_sayisi);
                         kasa_durumu = oyuncu_el_degeri(&krupiyer);
