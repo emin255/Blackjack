@@ -8,11 +8,6 @@
 #define CARD_HEIGHT 120.0f
 
 const Rectangle tekrarOynaButton = { 850, 750, 220, 40 };
-const Rectangle bahis10arttirbutton = { 780, 700, 40, 40 };
-const Rectangle bahis50arttirbutton = { 830, 700, 40, 40 };
-const Rectangle bahis100arttirbutton = { 880, 700, 40, 40 };
-const Rectangle bahissifirlabutton = { 930, 700, 100, 40 };
-const Rectangle bahiskoy = { 1040, 700, 100, 40 };
 const Rectangle oyuncuekle = { 880, 350, 100, 40  };
 const Rectangle oyuncuTamam = { 880, 400, 100, 40  };
 
@@ -83,11 +78,15 @@ int dolum_sirasi[5] = { 2, 1, 3, 0, 4 };
 // Yeni oyuncunun degerlerini ayarlar
 void yenioyuncu(struct oyuncu* oyuncu) {
     oyuncu->bahis =0;
+    oyuncu->splitValue = 0;
+    oyuncu->sirasplittemi = 0;
     oyuncu->bakiye =1000;
     oyuncu->isDoubled = 0;
     oyuncu->value=0;
     oyuncu->kart_sayi=0;
     strcpy(oyuncu->sonuc,"   ");
+    oyuncu->isSplitted = 0;
+    oyuncu->splitkartsayi = 0;
 }
 
 // kartlarin bitip bitmedigini kontrol eder
@@ -106,6 +105,8 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
         if (oyuncular[i].isActive == 1) {
             kartlarbittimi(kart_sayisi,deste,karistirma);
             oyuncular[i].kart_sayi = 0;
+            oyuncular[i].splitkartsayi = 0;
+            oyuncular[i].isSplitted = 0;
             oyuncular[i].el[0] = deste[*kart_sayisi];
             (*kart_sayisi)++;
             oyuncular[i].el[1] = deste[*kart_sayisi];
@@ -138,54 +139,146 @@ void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 v
 // Oyuncularin ellerini oturduklari konuma gore cizer
 void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, float aci,bool hareket_var_mi) {
     float radyan = aci * DEG2RAD; // Dereceyi Radyana cevir
+    float split_araligi = 80;
+    if (oyuncu->isSplitted == 1) {
+        for (int i = 0; i < oyuncu->splitkartsayi; i++) {
+            float kart_araligi = 30.0f;
+            Rectangle sourcerec = kart_degerini_al(&oyuncu->splitEl[i]);
 
-    for (int i = 0; i < oyuncu->kart_sayi; i++) {
-        float kart_araligi = 30.0f;
-        Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
+            float shiftX = ((i * kart_araligi)+(split_araligi)) * cosf(radyan);
+            float shiftY = ((i * kart_araligi)+(split_araligi)) * sinf(radyan);
 
-        float shiftX = (i * kart_araligi) * cosf(radyan);
-        float shiftY = (i * kart_araligi) * sinf(radyan);
+            Vector2 hedefKonum = {
+                pos.x + shiftX,
+                pos.y + shiftY
+            };
 
-        Vector2 hedefKonum = {
-            pos.x + shiftX,
-            pos.y + shiftY
-        };
+            struct kart *aktifKart = &oyuncu->splitEl[i];
+            Vector2 gorselPos = {aktifKart->mevcutKonumx,aktifKart->mevcutkonumy};
 
-        struct kart *aktifKart = &oyuncu->el[i];
-        Vector2 gorselPos = {aktifKart->mevcutKonumx,aktifKart->mevcutkonumy};
-
-        // DİKKAT: 'vardimmi' olarak güncellendi (i harfi ile)
-        if (i>0 && oyuncu->el[i-1].vardimmi == 0) {
-            continue;
-        }
-        if (aktifKart->vardimmi == 0) {
-            if (hareket_var_mi == true) {
+            if (i>0 && oyuncu->el[i-1].vardimmi == 0) {
                 continue;
             }
-            hareket_var_mi = true;
-            aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.09f);
-            aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.09f);
-
-            if (fabsf(gorselPos.x - hedefKonum.x) < 1.0f &&
-                fabsf(gorselPos.y - hedefKonum.y) < 1.0f) {
-
-                gorselPos = hedefKonum;
-                aktifKart->vardimmi = 1;
+            if (aktifKart->vardimmi == 0) {
+                if (hareket_var_mi == true) {
+                    continue;
                 }
-        } else {
-            gorselPos = hedefKonum;
+                hareket_var_mi = true;
+                aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.09f);
+                aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.09f);
+
+                if (fabsf(gorselPos.x - hedefKonum.x) < 1.0f &&
+                    fabsf(gorselPos.y - hedefKonum.y) < 1.0f) {
+
+                    gorselPos = hedefKonum;
+                    aktifKart->vardimmi = 1;
+                    }
+            } else {
+                gorselPos = hedefKonum;
+            }
+            Rectangle destRec = {
+                gorselPos.x,
+                gorselPos.y,
+                CARD_WIDTH,
+                CARD_HEIGHT
+            };
+
+            Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+            DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
+
+            for (int i = 0; i < oyuncu->kart_sayi; i++) {
+                Rectangle sourcerec1 = kart_degerini_al(&oyuncu->el[i]);
+
+                float shiftX1 = ((i * kart_araligi)-(split_araligi)) * cosf(radyan);
+                float shiftY1 = ((i * kart_araligi)-(split_araligi)) * sinf(radyan);
+
+                Vector2 hedefKonum1 = {
+                    pos.x + shiftX1,
+                    pos.y + shiftY1
+                };
+
+                struct kart *aktifKart1 = &oyuncu->el[i];
+                Vector2 gorselPos1 = {aktifKart1->mevcutKonumx,aktifKart1->mevcutkonumy};
+
+                if (i>0 && oyuncu->el[i-1].vardimmi == 0) {
+                    continue;
+                }
+                if (aktifKart1->vardimmi == 0) {
+                    if (hareket_var_mi == true) {
+                        continue;
+                    }
+                    hareket_var_mi = true;
+                    aktifKart1->mevcutKonumx = FloatLerp(gorselPos1.x, hedefKonum1.x, 0.09f);
+                    aktifKart1->mevcutkonumy= FloatLerp(gorselPos1.y, hedefKonum1.y, 0.09f);
+
+                    if (fabsf(gorselPos1.x - hedefKonum1.x) < 1.0f &&
+                        fabsf(gorselPos1.y - hedefKonum1.y) < 1.0f) {
+
+                        gorselPos1 = hedefKonum1;
+                        aktifKart1->vardimmi = 1;
+                        }
+                } else {
+                    gorselPos1 = hedefKonum1;
+                }
+                Rectangle destRec1 = {
+                    gorselPos1.x,
+                    gorselPos1.y,
+                    CARD_WIDTH,
+                    CARD_HEIGHT
+                };
+
+                Vector2 origin1 = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+                DrawTexturePro(spritesheet, sourcerec1, destRec1, origin1, aci, WHITE);
+            }
         }
-        Rectangle destRec = {
-            gorselPos.x,
-            gorselPos.y,
-            CARD_WIDTH,
-            CARD_HEIGHT
-        };
+    }else {
+        for (int i = 0; i < oyuncu->kart_sayi; i++) {
+            float kart_araligi = 30.0f;
+            Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
 
-        Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+            float shiftX = (i * kart_araligi) * cosf(radyan);
+            float shiftY = (i * kart_araligi) * sinf(radyan);
 
-        DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
+            Vector2 hedefKonum = {
+                pos.x + shiftX,
+                pos.y + shiftY
+            };
+
+            struct kart *aktifKart = &oyuncu->el[i];
+            Vector2 gorselPos = {aktifKart->mevcutKonumx,aktifKart->mevcutkonumy};
+
+            if (i>0 && oyuncu->el[i-1].vardimmi == 0) {
+                continue;
+            }
+            if (aktifKart->vardimmi == 0) {
+                if (hareket_var_mi == true) {
+                    continue;
+                }
+                hareket_var_mi = true;
+                aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.09f);
+                aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.09f);
+
+                if (fabsf(gorselPos.x - hedefKonum.x) < 1.0f &&
+                    fabsf(gorselPos.y - hedefKonum.y) < 1.0f) {
+
+                    gorselPos = hedefKonum;
+                    aktifKart->vardimmi = 1;
+                    }
+            } else {
+                gorselPos = hedefKonum;
+            }
+            Rectangle destRec = {
+                gorselPos.x,
+                gorselPos.y,
+                CARD_WIDTH,
+                CARD_HEIGHT
+            };
+
+            Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+            DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
+        }
     }
+
 }
 
 // Ana Fonksiyon
@@ -197,7 +290,7 @@ int main(void)
     struct oyuncu oyuncular[5];
     int oyuncu_sayisi = 0;
     double kasaCekmeZamani = 0.0;
-    int kart_sayisi = 310;
+    int kart_sayisi = 0;
     int kart_kapali_mi = 0;
     const int screenWidth = 1900;
     const int screenHeight = 1000;
@@ -339,7 +432,7 @@ int main(void)
                 kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                 // Degerleri hesapla (Herkes icin)
                 for(int i=0; i<5; i++) {
-                    if(oyuncular[i].isActive) oyuncular[i].value = oyuncu_el_degeri(&oyuncular[i]);
+                    if(oyuncular[i].isActive) oyuncular[i].value = oyuncu_el_degeri(&oyuncular[i],oyuncular[i].el,oyuncular[i].kart_sayi);
                 }
 
                 // Sirayi tekrar basa al
@@ -348,9 +441,10 @@ int main(void)
 
                 mevcutDurum = STATE_OYUNCU_TURU;
                 break;
-
             case STATE_OYUNCU_TURU: {
                 kart_kapali_mi = 0;
+
+                // Eğer tüm oyuncular bittiyse Kasa'ya geç
                 if(siradaki_oyuncu >= MAX_SEATS) {
                     mevcutDurum = STATE_KASA_TURU;
                     kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
@@ -358,72 +452,117 @@ int main(void)
                 }
 
                 struct oyuncu *aktif_oyuncu = &oyuncular[siradaki_oyuncu];
+
+                // Eğer oyuncu pasifse (boş koltuksa) direk geç
+                if(aktif_oyuncu->isActive == 0) {
+                    siradaki_oyuncu++;
+                    break;
+                }
+
                 Vector2 pos2 = koltuk_konumlari[siradaki_oyuncu];
                 float aci2 = koltuk_acilari[siradaki_oyuncu];
                 float rad2 = aci2 * DEG2RAD;
-
+                Vector2 doublePos,hitPos,standPos;
                 // Vektorler
                 float s2 = sinf(rad2);
                 float c2 = cosf(rad2);
                 Vector2 ileri2 = { -s2, c2 };
                 Vector2 sag2   = { c2, s2 };
-
-                // --- YENI KONUMLANDIRMA ---
-                // 1. Double Butonu: Kartlara daha yakin (100 birim)
-                float doubleDist = 100.0f;
-                Vector2 doublePos = {
-                    pos2.x + (ileri2.x * doubleDist),
-                    pos2.y + (ileri2.y * doubleDist)
+                float doubleDist = 110.0f;
+                Vector2 splitPos ={
+                    pos2.x + (ileri2.x * doubleDist) - ((sag2.x) * 100), // Hafif sola
+                    pos2.y + (ileri2.y * doubleDist) - (sag2.y * 100)
                 };
+                // --- BUTON KONUMLANDIRMA ---
+                // --- AKILLI KOORDİNAT SİSTEMİ (2x2 Düzen) ---
+                // 1. Önce "Yanal Kayma" (Split sonrası el takibi için)
+                float yanalKayma = 0.0f;
 
-                // 2. Hit ve Stand: Double'in altinda (150 birim)
-                float hitStandDist = 150.0f;
-                float ayrilik = 55.0f; // Saga sola acilma
-
-                // Ortak merkez (Hit/Stand hizasi)
-                Vector2 btnMerkez2 = {
-                    pos2.x + (ileri2.x * hitStandDist),
-                    pos2.y + (ileri2.y * hitStandDist)
-                };
-
-                Vector2 hitPos = {
-                    btnMerkez2.x - (sag2.x * ayrilik),
-                    btnMerkez2.y - (sag2.y * ayrilik)
-                };
-
-                Vector2 standPos = {
-                    btnMerkez2.x + (sag2.x * ayrilik),
-                    btnMerkez2.y + (sag2.y * ayrilik)
-                };
-
-                // Rectangle Tanimlari
-                Rectangle hitRect = { hitPos.x, hitPos.y, 100, 40 };
-                Rectangle standRect = { standPos.x, standPos.y, 100, 40 };
-                Rectangle doubleRect = { doublePos.x, doublePos.y, 100, 40 };
-
-                // 21 ve Ustu Kontrolu
-                if (aktif_oyuncu->value >= 21) {
-                    do { siradaki_oyuncu++; }
-                    while (siradaki_oyuncu < MAX_SEATS && !oyuncular[siradaki_oyuncu].isActive);
-
-                    if (siradaki_oyuncu >= MAX_SEATS) {
-                        mevcutDurum = STATE_KASA_TURU;
-                        kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
+                if (aktif_oyuncu->isSplitted == 1) {
+                    if (aktif_oyuncu->sirasplittemi == 0) {
+                        yanalKayma = -100.0f; // 1. El için sola kay
+                    } else {
+                        yanalKayma = 100.0f;  // 2. El için sağa kay
                     }
                 }
-                else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-                    // --- TIKLAMA KONTROLLERI ---
 
-                    // HIT BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, hitRect, aci2)) {
-                        kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
-                        kart_cek(aktif_oyuncu, uzundeste, &kart_sayisi);
-                        PlaySound(kartcekmesesi);
-                        aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu);
+                // 2. İki Farklı Merkez Belirle (Üst Sıra ve Alt Sıra)
+
+                // ALT SIRA (Hit ve Stand) - Koltuktan daha uzak
+                float altSiraUzaklik = 160.0f;
+                Vector2 altMerkez = {
+                    pos2.x + (ileri2.x * altSiraUzaklik) + (sag2.x * yanalKayma),
+                    pos2.y + (ileri2.y * altSiraUzaklik) + (sag2.y * yanalKayma)
+                };
+
+                // ÜST SIRA (Split ve Double) - Koltuğa daha yakın
+                float ustSiraUzaklik = 110.0f;
+                Vector2 ustMerkez = {
+                    pos2.x + (ileri2.x * ustSiraUzaklik) + (sag2.x * yanalKayma),
+                    pos2.y + (ileri2.y * ustSiraUzaklik) + (sag2.y * yanalKayma)
+                };
+
+                // 3. Butonları Sağa/Sola Aç (Ayrılık Miktarı)
+                float butonAraligi = 60.0f;
+
+                // --- ALT SIRA BUTONLARI ---
+                // HIT (Sol Alt)
+                Vector2 hitPos1 = {
+                    altMerkez.x - (sag2.x * butonAraligi),
+                    altMerkez.y - (sag2.y * butonAraligi)
+                };
+
+                // STAND (Sağ Alt)
+                Vector2 standPos1 = {
+                    altMerkez.x + (sag2.x * butonAraligi),
+                    altMerkez.y + (sag2.y * butonAraligi)
+                };
+
+                // --- ÜST SIRA BUTONLARI ---
+                // SPLIT (Sol Üst)
+                Vector2 splitPos1 = {
+                    ustMerkez.x - (sag2.x * butonAraligi),
+                    ustMerkez.y - (sag2.y * butonAraligi)
+                };
+
+                // DOUBLE (Sağ Üst)
+                Vector2 doublePos1 = {
+                    ustMerkez.x + (sag2.x * butonAraligi),
+                    ustMerkez.y + (sag2.y * butonAraligi)
+                };
+
+                // Rectangle Tanımları
+                Rectangle hitRect = { hitPos1.x, hitPos1.y, 100, 40 };
+                Rectangle standRect = { standPos1.x, standPos1.y, 100, 40 };
+                Rectangle doubleRect = { doublePos1.x, doublePos1.y, 100, 40 };
+                Rectangle splitRect = { splitPos1.x, splitPos1.y, 100, 40 };
+
+                // --- HANGİ ELİ OYNUYORUZ? ---
+                // Puanı ve kart sayısını şu an oynanan ele göre belirle
+                int *suanki_puan;
+                int *suanki_kartsayi;
+                struct kart *suanki_el;
+
+                if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 1) {
+                    // İkinci (Split) eli oynuyor
+                    suanki_puan = &aktif_oyuncu->splitValue;
+                    suanki_kartsayi = &aktif_oyuncu->splitkartsayi;
+                    suanki_el = aktif_oyuncu->splitEl;
+                } else {
+                    // İlk (Ana) eli oynuyor
+                    suanki_puan = &aktif_oyuncu->value;
+                    suanki_kartsayi = &aktif_oyuncu->kart_sayi;
+                    suanki_el = aktif_oyuncu->el;
+                }
+
+                // --- OTOMATİK KONTROLLER (21 Üstü Patlama) ---
+                if (*suanki_puan >= 21) {
+                    // Eğer split yapmışsa ve ilk eldeyse -> İKİNCİ ELE GEÇ
+                    if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 0) {
+                        aktif_oyuncu->sirasplittemi = 1;
                     }
-
-                    // STAND BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, standRect, aci2)) {
+                    // Yoksa -> SONRAKİ OYUNCUYA GEÇ
+                    else {
                         do { siradaki_oyuncu++; }
                         while (siradaki_oyuncu < MAX_SEATS && !oyuncular[siradaki_oyuncu].isActive);
 
@@ -432,36 +571,149 @@ int main(void)
                             kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                         }
                     }
-                    // DOUBLE BUTONU
-                    if(CheckCollisionRotatedRec(mousepos, doubleRect, aci2)) {
-                        if (aktif_oyuncu->kart_sayi == 2 && aktif_oyuncu->bakiye >= aktif_oyuncu->bahis) {
-                            aktif_oyuncu->bakiye -= aktif_oyuncu->bahis;
-                            aktif_oyuncu->bahis *= 2;
-                            kart_cek(aktif_oyuncu, uzundeste, &kart_sayisi);
-                            PlaySound(kartcekmesesi);
-                            aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu);
+                }
 
+                // --- TIKLAMA MANTIĞI ---
+                else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
+
+                    // 1. SPLIT BUTONU (Sadece ilk turda, kartlar eşitse ve split yapılmadıysa)
+                    if (aktif_oyuncu->isSplitted == 0 && aktif_oyuncu->kart_sayi == 2 &&
+                        aktif_oyuncu->el[0].konumx == aktif_oyuncu->el[1].konumx) {
+
+                        if (CheckCollisionRotatedRec(mousepos, splitRect, aci2)) {
+                            // Split İşlemleri
+                            aktif_oyuncu->isSplitted = 1;
+                            aktif_oyuncu->sirasplittemi = 0; // Önce ilk el oynanacak
+                            aktif_oyuncu->bakiye -= aktif_oyuncu->bahis;
+                            // 2. Kartı Split eline taşı
+                            aktif_oyuncu->splitEl[0] = aktif_oyuncu->el[1];
+
+                            // Sayıları eşitle (Her elde 1 kart var şuan)
+                            aktif_oyuncu->kart_sayi = 1;
+                            aktif_oyuncu->splitkartsayi = 1;
+
+                            // İki ele de birer kart dağıt (Blackjack kuralı)
+                            kart_cek(&aktif_oyuncu->kart_sayi, aktif_oyuncu->el, uzundeste, &kart_sayisi);
+                            kart_cek(&aktif_oyuncu->splitkartsayi, aktif_oyuncu->splitEl, uzundeste, &kart_sayisi);
+
+                            PlaySound(karistirmasesi); // Ses efekti
+                            // Değerleri güncelle
+                            aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                            aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
+                        }
+                    }
+
+                    // 2. HIT BUTONU
+                    if(CheckCollisionRotatedRec(mousepos, hitRect, aci2)) {
+                        kartlarbittimi(&kart_sayisi, uzundeste, karistirmasesi);
+
+                        // Şu an hangi el oynanıyorsa ona kart çek
+                        kart_cek(suanki_kartsayi, suanki_el, uzundeste, &kart_sayisi);
+                        PlaySound(kartcekmesesi);
+
+                        // Değeri güncelle
+                        if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 1) {
+                             // Split puanı hesaplama (Yukarıdaki kopya yöntemiyle veya struct yapına göre)
+                             aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
+                        } else {
+                             aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                        }
+                    }
+
+                    // 3. STAND BUTONU
+                    if(CheckCollisionRotatedRec(mousepos, standRect, aci2)) {
+                        // Eğer Split var ve 1. el oynanıyorsa -> 2. ELE GEÇ
+                        if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 0) {
+                            aktif_oyuncu->sirasplittemi = 1;
+                        }
+                        // Yoksa -> SONRAKİ OYUNCU
+                        else {
                             do { siradaki_oyuncu++; }
                             while (siradaki_oyuncu < MAX_SEATS && !oyuncular[siradaki_oyuncu].isActive);
+
                             if (siradaki_oyuncu >= MAX_SEATS) {
                                 mevcutDurum = STATE_KASA_TURU;
                                 kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                             }
                         }
                     }
+
+                    // 4. DOUBLE BUTONU (Sadece 2 kart varken)
+                    if(*suanki_kartsayi == 2 && aktif_oyuncu->bakiye >= aktif_oyuncu->bahis) {
+                        if(CheckCollisionRotatedRec(mousepos, doubleRect, aci2)) {
+                            // Bahsi düş
+                            aktif_oyuncu->bakiye -= aktif_oyuncu->bahis;
+                            // (Split bahsi ayrı tutulmalı ama şimdilik basitleştirdim)
+                            aktif_oyuncu->bahis *= 2;
+
+                            // Tek kart çek
+                            kart_cek(suanki_kartsayi, suanki_el, uzundeste, &kart_sayisi);
+                            PlaySound(kartcekmesesi);
+
+                            // Puanı güncelle
+                            if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 1) {
+                                *suanki_puan = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                            } else {
+                                aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                            }
+
+                            // Double'dan sonra mecburi Stand yapılır
+                            if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 0) {
+                                aktif_oyuncu->sirasplittemi = 1;
+                            } else {
+                                do { siradaki_oyuncu++; }
+                                while (siradaki_oyuncu < MAX_SEATS && !oyuncular[siradaki_oyuncu].isActive);
+                                if (siradaki_oyuncu >= MAX_SEATS) {
+                                    mevcutDurum = STATE_KASA_TURU;
+                                    kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
+                                }
+                            }
+                        }
+                    }
                 }
+
+                // --- BUTON ÇİZİMLERİ ---
+
+                // HIT (Yeşil)
+                DrawRectanglePro(hitRect, altMerkez, aci2, LIME);
+                YaziCizDondur("HIT", hitPos.x, hitPos.y, aci2, 20, BLACK);
+
+                // STAND (Kırmızı)
+                DrawRectanglePro(standRect,altMerkez, aci2, RED);
+                YaziCizDondur("STAND", standPos.x, standPos.y, aci2, 20, WHITE);
+
+                // DOUBLE (Mavi - Şartlı)
+                if (*suanki_kartsayi == 2) {
+                    DrawRectanglePro(doubleRect, ustMerkez, aci2, BLUE);
+                    YaziCizDondur("DOUBLE", doublePos.x, doublePos.y, aci2, 20, WHITE);
+                }
+
+                // SPLIT (Gri - Şartlı)
+                if (aktif_oyuncu->isSplitted == 0 && aktif_oyuncu->kart_sayi == 2 &&
+                    aktif_oyuncu->el[0].konumx == aktif_oyuncu->el[1].konumx) {
+                    DrawRectanglePro(splitRect, ustMerkez, aci2, LIGHTGRAY);
+                    YaziCizDondur("SPLIT", splitPos.x, splitPos.y, aci2, 20, BLACK);
+                }
+
+                // HANGİ EL OYNANIYOR GÖSTERGESİ (Ok işareti gibi)
+                if(aktif_oyuncu->isSplitted) {
+                    const char* elText = (aktif_oyuncu->sirasplittemi == 0) ? "<< EL 1" : "EL 2 >>";
+                    YaziCizDondur(elText, pos2.x, pos2.y - 100, aci2, 25, YELLOW);
+                }
+
                 break;
             }
-            // Kasa Sirasi 17nin altina kart ceker
+
+             // Kasa Sirasi 17nin altina kart ceker
             case STATE_KASA_TURU:
                 kart_kapali_mi = 1;
-                int kasa_durumu = oyuncu_el_degeri(&krupiyer);
+                int kasa_durumu = oyuncu_el_degeri(&krupiyer,krupiyer.el,krupiyer.kart_sayi);
                 if(kasa_durumu<17) {
                     if (GetTime() > kasaCekmeZamani) {
                         kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                         PlaySound(kartcekmesesi);
-                        kart_cek(&krupiyer,uzundeste,&kart_sayisi);
-                        kasa_durumu = oyuncu_el_degeri(&krupiyer);
+                        kart_cek(&krupiyer.kart_sayi,krupiyer.el,uzundeste,&kart_sayisi);
+                        kasa_durumu = oyuncu_el_degeri(&krupiyer,krupiyer.el,krupiyer.kart_sayi);
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     }
                 }
@@ -480,6 +732,7 @@ int main(void)
                             oyuncular[i].value = 0;
                             oyuncular[i].isDoubled=0;
                             strcpy(oyuncular[i].sonuc,"   ");
+                            strcpy(oyuncular[i].splitsonuc,"   ");
                         }
                     }
                 }
@@ -487,25 +740,7 @@ int main(void)
                 if (hesaplandi_mi == 0) {
                     for (int i = 0;i<MAX_SEATS;i++) {
                         if (oyuncular[i].isActive == 1) {
-                            sonuc = kazanan(&oyuncular[i],&krupiyer);
-                            if (sonuc==0) {
-                                strcpy(oyuncular[i].sonuc,"kasa kazandi");
-                            }
-                            else if (sonuc==1) {
-                                strcpy(oyuncular[i].sonuc,"oyuncu kazandi");
-                                oyuncular[i].bakiye += oyuncular[i].bahis*2;
-                            }
-                            else if (sonuc==2) {
-                                strcpy(oyuncular[i].sonuc,"oyuncu patladi");
-                            }
-                            else if (sonuc==3) {
-                                strcpy(oyuncular[i].sonuc,"berabere");
-                                oyuncular[i].bakiye += oyuncular[i].bahis;
-                            }
-                            else if (sonuc==4) {
-                                strcpy(oyuncular[i].sonuc,"Kasa patladi"); // duzeltildi
-                                oyuncular[i].bakiye += oyuncular[i].bahis*2;
-                            }
+                            kazanan(&oyuncular[i],&krupiyer);
                         }
                     }
                     hesaplandi_mi = 1;
@@ -530,7 +765,7 @@ int main(void)
                 float rad = aci * DEG2RAD;
                 float s = sinf(rad);
                 float c = cosf(rad);
-
+                Vector2 sag   = { c, s };
                 // 1. Kartlari Ciz
                 oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci,global_animasyon_kilit);
 
@@ -560,14 +795,26 @@ int main(void)
                     pos.y + (isimDist * c)
                 };
                 // --- YAZILARI CIZ ---
-                YaziCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x, skorPos.y, aci, 20, WHITE);
+                if (oyuncular[i].isSplitted) {
+                    YaziCizDondur(TextFormat("SKOR: %d", oyuncular[i].splitValue), skorPos.x+(sag.x*100), skorPos.y+(sag.y*100), aci, 20, WHITE);
+                    YaziCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x-(sag.x*100), skorPos.y-(sag.y*100), aci, 20, WHITE);
+                }else {
+                    YaziCizDondur(TextFormat("SKOR: %d", oyuncular[i].value), skorPos.x, skorPos.y, aci, 20, WHITE);
+                }
                 YaziCizDondur(TextFormat("Bahis: %d", oyuncular[i].bahis), bahisPos.x, bahisPos.y, aci, 18, YELLOW);
                 YaziCizDondur(TextFormat("Bakiye: %d", oyuncular[i].bakiye), bakiyePos.x, bakiyePos.y, aci, 18, GREEN);
                 YaziCizDondur(TextFormat("Oyuncu %d", i+1), isimPos.x, isimPos.y, aci, 20, LIGHTGRAY);
 
                 // SONUC YAZISI (KAZANDIN/KAYBETTIN) - Tam kartlarin ortasina
                 if(mevcutDurum == STATE_SONUC) {
-                     YaziCizDondur(oyuncular[i].sonuc, pos.x, pos.y, aci, 26, RED);
+
+                    if (oyuncular[i].isSplitted==1) {
+                        YaziCizDondur(oyuncular[i].splitsonuc, pos.x+(sag.x*100), pos.y+(sag.y*100), aci, 20, RED);
+                        YaziCizDondur(oyuncular[i].sonuc, pos.x-(sag.x*100), pos.y-(sag.y*100), aci, 20, RED);
+                    }
+                    else {
+                        YaziCizDondur(oyuncular[i].sonuc, pos.x, pos.y, aci, 20, RED);
+                    }
                 }
             }
         }
@@ -641,40 +888,83 @@ int main(void)
             float c = cosf(rad);
             Vector2 ileri = { -s, c };
             Vector2 sag   = { c, s };
+            struct oyuncu* aktif_oyuncu = &oyuncular[siradaki_oyuncu];
 
-            // 1. Double (Ustte)
-            float doubleDist = 100.0f;
-            Vector2 doublePos = {
-                pos.x + (ileri.x * doubleDist),
-                pos.y + (ileri.y * doubleDist)
-            };
+            float yanalKayma = 0.0f;
 
-            // 2. Hit/Stand (Altta)
-            float hitStandDist = 150.0f;
-            float ayrilik = 55.0f;
-            Vector2 btnMerkez = {
-                pos.x + (ileri.x * hitStandDist),
-                pos.y + (ileri.y * hitStandDist)
-            };
-            Vector2 hitPos   = { btnMerkez.x - (sag.x * ayrilik), btnMerkez.y - (sag.y * ayrilik) };
-            Vector2 standPos = { btnMerkez.x + (sag.x * ayrilik), btnMerkez.y + (sag.y * ayrilik) };
+                if (aktif_oyuncu->isSplitted == 1) {
+                    if (aktif_oyuncu->sirasplittemi == 0) {
+                        yanalKayma = -100.0f;
+                    } else {
+                        yanalKayma = 100.0f;
+                    }
+                }
 
-            // Rectangles
-            Rectangle hitRect = { hitPos.x, hitPos.y, 100, 40 };
-            Rectangle standRect = { standPos.x, standPos.y, 100, 40 };
-            Rectangle doubleRect = { doublePos.x, doublePos.y, 100, 40 };
-            Vector2 btnOrigin = { 50, 20 };
+                // 2. İki Farklı Merkez Belirle (ileri ve sag kullanılıyor)
 
+                // ALT SIRA (Hit ve Stand)
+                float altSiraUzaklik = 160.0f;
+                Vector2 altMerkez = {
+                    pos.x + (ileri.x * altSiraUzaklik) + (sag.x * yanalKayma),
+                    pos.y + (ileri.y * altSiraUzaklik) + (sag.y * yanalKayma)
+                };
+
+                // ÜST SIRA (Split ve Double)
+                float ustSiraUzaklik = 110.0f;
+                Vector2 ustMerkez = {
+                    pos.x + (ileri.x * ustSiraUzaklik) + (sag.x * yanalKayma),
+                    pos.y + (ileri.y * ustSiraUzaklik) + (sag.y * yanalKayma)
+                };
+
+                float butonAraligi = 60.0f;
+
+                // --- ALT SIRA BUTONLARI ---
+                // HIT (Sol Alt)
+                Vector2 hitPos = {
+                    altMerkez.x - (sag.x * butonAraligi),
+                    altMerkez.y - (sag.y * butonAraligi)
+                };
+
+                // STAND (Sağ Alt)
+                Vector2 standPos = {
+                    altMerkez.x + (sag.x * butonAraligi),
+                    altMerkez.y + (sag.y * butonAraligi)
+                };
+
+                // --- ÜST SIRA BUTONLARI ---
+                // SPLIT (Sol Üst)
+                Vector2 splitPos = {
+                    ustMerkez.x - (sag.x * butonAraligi),
+                    ustMerkez.y - (sag.y * butonAraligi)
+                };
+
+                // DOUBLE (Sağ Üst)
+                Vector2 doublePos = {
+                    ustMerkez.x + (sag.x * butonAraligi),
+                    ustMerkez.y + (sag.y * butonAraligi)
+                };
+
+                // Rectangle Tanımları
+                Rectangle hitRect = { hitPos.x, hitPos.y, 100, 40 };
+                Rectangle standRect = { standPos.x, standPos.y, 100, 40 };
+                Rectangle doubleRect = { doublePos.x, doublePos.y, 100, 40 };
+                Rectangle splitRect = { splitPos.x, splitPos.y, 100, 40 };
+                Vector2 btnOrigin = { 50, 20 };
             // CIZIM
+
             DrawRectanglePro(hitRect, btnOrigin, aci, LIME);
             YaziCizDondur("HIT", hitPos.x, hitPos.y, aci, 20, BLACK);
 
             DrawRectanglePro(standRect, btnOrigin, aci, RED);
             YaziCizDondur("STAND", standPos.x, standPos.y, aci, 20, WHITE);
 
+            if (oyuncular[siradaki_oyuncu].isSplitted == 0&&oyuncular[siradaki_oyuncu].el[0].konumx==oyuncular[siradaki_oyuncu].el[1].konumx) {
+                DrawRectanglePro(splitRect, btnOrigin, aci,WHITE);
+                YaziCizDondur("SPLIT", splitPos.x, splitPos.y, aci, 20, BLACK);
+            }
             if (oyuncular[siradaki_oyuncu].kart_sayi == 2) {
                 DrawRectanglePro(doubleRect, btnOrigin, aci, BLUE);
-                YaziCizDondur("2 KAT", doublePos.x, doublePos.y, aci, 20, WHITE);
+                YaziCizDondur("DOUBLE", doublePos.x, doublePos.y, aci, 20, WHITE);
             }
         } else if (mevcutDurum == STATE_SONUC) {
             char oyun_sonucu[30];
@@ -685,6 +975,7 @@ int main(void)
         EndDrawing();
     }
     UnloadTexture(cardSpriteSheet);
+    UnloadSound(karistirmasesi);
     UnloadSound(kartcekmesesi); // Yuklenen efektleri temizle
     UnloadMusicStream(arkaplan); // Yuklenen muzigi temizle
     CloseAudioDevice();

@@ -4,28 +4,57 @@
 #include <string.h>
 #include <time.h>
 #include "blackjack.h"
-int kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
+void kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
     // Krupiyer kazanırsa 0
     // Oyuncu kazanırsa 1
     // Oyuncu patlarsa 2
     // Krupiyer patlarsa 4
     // Denkse 3
-    if (oyuncu_el_degeri(oyuncu)>21) {
-        return 2;
+    if (oyuncu->isSplitted==1) {
+        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)>21) {
+            strcpy(oyuncu->splitsonuc,"oyuncu patladi");
+        }
+        if (oyuncu_el_degeri(krupiyer,krupiyer->splitEl,oyuncu->splitkartsayi)>21) {
+            strcpy(oyuncu->splitsonuc,"Kasa patladi"); // duzeltildi
+            oyuncu->bakiye += oyuncu->bahis*2;
+        }
+        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)==21&&oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->splitkartsayi == 2) {
+            strcpy(oyuncu->splitsonuc,"oyuncu kazandi");
+            oyuncu->bakiye += oyuncu->bahis*2;
+        }
+        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)<oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+            strcpy(oyuncu->splitsonuc,"kasa kazandi");
+        }
+        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)>oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+            strcpy(oyuncu->splitsonuc,"oyuncu kazandi");
+            oyuncu->bakiye += oyuncu->bahis*2;
+        }else {
+            strcpy(oyuncu->splitsonuc,"berabere");
+            oyuncu->bakiye += oyuncu->bahis;
+        }
     }
-    if (oyuncu_el_degeri(krupiyer)>21) {
-        return 4;
+    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)>21) {
+        strcpy(oyuncu->sonuc,"oyuncu patladi");
     }
-    if (oyuncu_el_degeri(oyuncu)==21&&oyuncu_el_degeri(krupiyer)!=21&&oyuncu->kart_sayi == 2) {
-        return 1;
+    if (oyuncu_el_degeri(krupiyer,krupiyer->el,oyuncu->kart_sayi)>21) {
+        strcpy(oyuncu->sonuc,"Kasa patladi"); // duzeltildi
+        oyuncu->bakiye += oyuncu->bahis*2;
     }
-    if (oyuncu_el_degeri(oyuncu)<oyuncu_el_degeri(krupiyer)) {
-        return 0;
+    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)==21&&oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->kart_sayi == 2) {
+        strcpy(oyuncu->sonuc,"oyuncu kazandi");
+        oyuncu->bakiye += oyuncu->bahis*2;
     }
-    if (oyuncu_el_degeri(oyuncu)>oyuncu_el_degeri(krupiyer)) {
-        return 1;
+    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)<oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+        strcpy(oyuncu->sonuc,"kasa kazandi");
     }
-    return 3;
+    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)>oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+        strcpy(oyuncu->sonuc,"oyuncu kazandi");
+        oyuncu->bakiye += oyuncu->bahis*2;
+    }else {
+        strcpy(oyuncu->sonuc,"berabere");
+        oyuncu->bakiye += oyuncu->bahis;
+    }
+
 
 }
 void deste_olustur(struct kart deste[52]){
@@ -69,20 +98,20 @@ void deste_olustur(struct kart deste[52]){
         }
     }
 }
-int oyuncu_el_degeri(struct oyuncu* oyuncu) {
-    int el = 0;
+int oyuncu_el_degeri(struct oyuncu* oyuncu,struct kart el[],int kartsayisi) {
+    int deger = 0;
     int as_sayisi = 0;
-    for (int j = 0; j < oyuncu->kart_sayi; j++) {
-        el += oyuncu->el[j].value;
-        if (oyuncu->el[j].isim[0] == 'A') {
+    for (int j = 0; j < kartsayisi; j++) {
+        deger += el[j].value;
+        if (el[j].isim[0] == 'A') {
             as_sayisi++;
         }
     }
-    while (el>21&&as_sayisi>0) {
-        el = el - 10;
+    while (deger>21&&as_sayisi>0) {
+        deger = deger - 10;
         as_sayisi--;
     }
-    return el;
+    return deger;
 }
 void desteyi_karistir(struct kart deste[]) {
     srand(time(NULL));
@@ -95,10 +124,10 @@ void desteyi_karistir(struct kart deste[]) {
     }
 }
 
-void kart_cek(struct oyuncu* oyuncu, struct kart deste[],int* kart_sayisi) {
-    oyuncu->el[oyuncu->kart_sayi] = deste[*kart_sayisi];
+void kart_cek(int *oyuncu_kart_sayi,struct kart el[], struct kart deste[],int* kart_sayisi) {
+    el[*oyuncu_kart_sayi] = deste[*kart_sayisi];
     (*kart_sayisi)++;
-    oyuncu->kart_sayi++;
+    (*oyuncu_kart_sayi)++;
 }
 void uzundesteyikaristir(struct kart deste[])
 {
