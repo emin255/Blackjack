@@ -2,11 +2,10 @@
 #include "blackjack.h"
 #include "string.h"
 #include "math.h"
-
-const int MAX_CARD_COUNT = 364;
-const int MAX_SEATS = 5;
-const float CARD_WIDTH = 84.0f;
-const float CARD_HEIGHT = 120.0f;
+#define MAX_CARD_COUNT 364
+#define MAX_SEATS 5
+#define CARD_WIDTH 84.0f
+#define CARD_HEIGHT 120.0f
 
 const Rectangle tekrarOynaButton = { 850, 750, 220, 40 };
 const Rectangle bahis10arttirbutton = { 780, 700, 40, 40 };
@@ -74,7 +73,7 @@ typedef enum{
     STATE_SONUC
 }GAME_STATE;
 
-Rectangle kart_degerini_al(struct kart* kart) {//cardsheet icindeki kartlarin konumunu dondurur
+Rectangle kart_degerini_al(const struct kart* kart) {//cardsheet icindeki kartlarin konumunu dondurur
     return (Rectangle){ (kart->konumx)*CARD_WIDTH, kart->konumy*CARD_HEIGHT, CARD_WIDTH, CARD_HEIGHT };
 }
 
@@ -106,7 +105,6 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
         if (oyuncular[i].isActive == 1) {
             kartlarbittimi(kart_sayisi,deste);
             oyuncular[i].kart_sayi = 0;
-            (*kart_sayisi)++;
             oyuncular[i].el[0] = deste[*kart_sayisi];
             (*kart_sayisi)++;
             oyuncular[i].el[1] = deste[*kart_sayisi];
@@ -122,7 +120,7 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
 }
 
 // Kryupiyerin kartlarini ekrana cizer
-void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
+void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
         if (gizle == 0 && i == 0) {
             Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
@@ -139,9 +137,9 @@ void krupiyer_el_ciz(struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2
 // Oyuncularin ellerini oturduklari konuma gore cizer
 void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, float aci,bool hareket_var_mi) {
     float radyan = aci * DEG2RAD; // Dereceyi Radyana cevir
-    float kart_araligi = 30.0f;   // Kartlar arasi mesafe
 
     for (int i = 0; i < oyuncu->kart_sayi; i++) {
+        float kart_araligi = 30.0f;
         Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
 
         float shiftX = (i * kart_araligi) * cosf(radyan);
@@ -167,8 +165,8 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
             aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.09f);
             aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.09f);
 
-            if (fabs(gorselPos.x - hedefKonum.x) < 1.0f &&
-                fabs(gorselPos.y - hedefKonum.y) < 1.0f) {
+            if (fabsf(gorselPos.x - hedefKonum.x) < 1.0f &&
+                fabsf(gorselPos.y - hedefKonum.y) < 1.0f) {
 
                 gorselPos = hedefKonum;
                 aktifKart->vardimmi = 1;
@@ -193,14 +191,12 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 int main(void)
 {
     Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
-    bool global_animasyon_kilit = false;
     int sonuc;
     int siradaki_oyuncu = 0;
     struct oyuncu oyuncular[5];
     int oyuncu_sayisi = 0;
     double kasaCekmeZamani = 0.0;
-    const double kasaBeklemeSuresi = 1.0;
-    int kart_sayisi = 0;
+    int kart_sayisi = 310;
     int kart_kapali_mi = 0;
     const int screenWidth = 1900;
     const int screenHeight = 1000;
@@ -242,6 +238,7 @@ int main(void)
     }
     while (!WindowShouldClose())
     {
+        const double kasaBeklemeSuresi = 1.0;
         UpdateMusicStream(arkaplan);
         Vector2 mousepos = GetMousePosition();
         // State Machine
@@ -288,8 +285,6 @@ int main(void)
                     pos.y + (ileri.y*uzaklik)
                 };
 
-                Vector2 kucukorigin = {20,20};
-                Vector2 buyukorigin = {50,20};
                 Vector2 bahis100pos = {btnMerkez.x, btnMerkez.y};
                 Vector2 bahis50pos = {btnMerkez.x-(sag.x*kucukayrilik), btnMerkez.y-(sag.y*kucukayrilik)};
                 Vector2 bahis10pos = {btnMerkez.x-2*(sag.x*kucukayrilik), btnMerkez.y-2*(sag.y*kucukayrilik)};
@@ -518,6 +513,8 @@ int main(void)
         BeginDrawing();// Cizim Baslangici
         ClearBackground(DARKGREEN);
         DrawTexture(masa,-450,-270,WHITE);// Arkaya masa Goruntusu ekler
+        DrawText(TextFormat("Kalan Kart: %d", MAX_CARD_COUNT - kart_sayisi), 20, 20, 20, RED);
+        DrawText(TextFormat("Kart Sayac: %d", kart_sayisi), 20, 50, 20, RED);
         for (int i = 0 ;i<MAX_CARD_COUNT-kart_sayisi;i++) {
             Vector2 drawPos = { 200+(i * 1), 100};
             DrawTextureRec(cardSpriteSheet, kapali_kart, drawPos, WHITE);
@@ -525,6 +522,7 @@ int main(void)
         for (int i = 0;i<MAX_SEATS;i++) {
             // sirdaki oyuncu aktif ise islem yapar
             if (oyuncular[i].isActive == 1) {
+                bool global_animasyon_kilit = false;
                 float aci = koltuk_acilari[i];
                 Vector2 pos = koltuk_konumlari[i];
                 float rad = aci * DEG2RAD;
