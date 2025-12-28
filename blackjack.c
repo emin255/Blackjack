@@ -10,44 +10,47 @@ void kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
     // Oyuncu patlarsa 2
     // Krupiyer patlarsa 4
     // Denkse 3
+    int krupiyervalue = oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi);
+    int oyuncuvalue = oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi);
+    int oyuncusplitValue = oyuncu_el_degeri(krupiyer->splitEl,oyuncu->splitkartsayi);
     if (oyuncu->isSplitted==1) {
-        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)>21) {
+        if (oyuncusplitValue>21) {
             strcpy(oyuncu->splitsonuc,"oyuncu patladi");
         }
-        if (oyuncu_el_degeri(krupiyer,krupiyer->splitEl,oyuncu->splitkartsayi)>21) {
-            strcpy(oyuncu->splitsonuc,"Kasa patladi"); // duzeltildi
+        else if (krupiyervalue>21) {
+            strcpy(oyuncu->splitsonuc,"Kasa patladi");
             oyuncu->bakiye += oyuncu->bahis*2;
         }
-        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)==21&&oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->splitkartsayi == 2) {
+        else if (oyuncusplitValue == 21&&krupiyervalue!=21&&oyuncu->splitkartsayi == 2) {
             strcpy(oyuncu->splitsonuc,"oyuncu kazandi");
             oyuncu->bakiye += oyuncu->bahis*2;
         }
-        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)<oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+        else if (oyuncusplitValue<krupiyervalue) {
             strcpy(oyuncu->splitsonuc,"kasa kazandi");
         }
-        if (oyuncu_el_degeri(oyuncu,oyuncu->splitEl,oyuncu->splitkartsayi)>oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+        else if (oyuncusplitValue>krupiyervalue) {
             strcpy(oyuncu->splitsonuc,"oyuncu kazandi");
             oyuncu->bakiye += oyuncu->bahis*2;
-        }else {
+        }else if (oyuncusplitValue==krupiyervalue&&krupiyervalue<21&&oyuncuvalue<21) {
             strcpy(oyuncu->splitsonuc,"berabere");
             oyuncu->bakiye += oyuncu->bahis;
         }
     }
-    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)>21) {
+    if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)>21) {
         strcpy(oyuncu->sonuc,"oyuncu patladi");
     }
-    if (oyuncu_el_degeri(krupiyer,krupiyer->el,oyuncu->kart_sayi)>21) {
+    else if (oyuncu_el_degeri(krupiyer->el,oyuncu->kart_sayi)>21) {
         strcpy(oyuncu->sonuc,"Kasa patladi"); // duzeltildi
         oyuncu->bakiye += oyuncu->bahis*2;
     }
-    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)==21&&oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->kart_sayi == 2) {
+    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)==21&&oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->kart_sayi == 2) {
         strcpy(oyuncu->sonuc,"oyuncu kazandi");
         oyuncu->bakiye += oyuncu->bahis*2;
     }
-    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)<oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)<oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)) {
         strcpy(oyuncu->sonuc,"kasa kazandi");
     }
-    if (oyuncu_el_degeri(oyuncu,oyuncu->el,oyuncu->kart_sayi)>oyuncu_el_degeri(krupiyer,krupiyer->el,krupiyer->kart_sayi)) {
+    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)>oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)) {
         strcpy(oyuncu->sonuc,"oyuncu kazandi");
         oyuncu->bakiye += oyuncu->bahis*2;
     }else {
@@ -98,7 +101,7 @@ void deste_olustur(struct kart deste[52]){
         }
     }
 }
-int oyuncu_el_degeri(struct oyuncu* oyuncu,struct kart el[],int kartsayisi) {
+int oyuncu_el_degeri(struct kart el[],int kartsayisi) {
     int deger = 0;
     int as_sayisi = 0;
     for (int j = 0; j < kartsayisi; j++) {

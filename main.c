@@ -85,6 +85,7 @@ void yenioyuncu(struct oyuncu* oyuncu) {
     oyuncu->value=0;
     oyuncu->kart_sayi=0;
     strcpy(oyuncu->sonuc,"   ");
+    strcpy(oyuncu->splitsonuc,"   ");
     oyuncu->isSplitted = 0;
     oyuncu->splitkartsayi = 0;
 }
@@ -104,6 +105,8 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
     for (int i = 0;i<MAX_SEATS;i++) {
         if (oyuncular[i].isActive == 1) {
             kartlarbittimi(kart_sayisi,deste,karistirma);
+            strcpy(oyuncular[i].splitsonuc,"   ");
+            strcpy(oyuncular[i].sonuc,"   ");
             oyuncular[i].kart_sayi = 0;
             oyuncular[i].splitkartsayi = 0;
             oyuncular[i].isSplitted = 0;
@@ -432,7 +435,7 @@ int main(void)
                 kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                 // Degerleri hesapla (Herkes icin)
                 for(int i=0; i<5; i++) {
-                    if(oyuncular[i].isActive) oyuncular[i].value = oyuncu_el_degeri(&oyuncular[i],oyuncular[i].el,oyuncular[i].kart_sayi);
+                    if(oyuncular[i].isActive) oyuncular[i].value = oyuncu_el_degeri(oyuncular[i].el,oyuncular[i].kart_sayi);
                 }
 
                 // Sirayi tekrar basa al
@@ -598,8 +601,8 @@ int main(void)
 
                             PlaySound(karistirmasesi); // Ses efekti
                             // Değerleri güncelle
-                            aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
-                            aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
+                            aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                            aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
                         }
                     }
 
@@ -614,9 +617,9 @@ int main(void)
                         // Değeri güncelle
                         if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 1) {
                              // Split puanı hesaplama (Yukarıdaki kopya yöntemiyle veya struct yapına göre)
-                             aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
+                             aktif_oyuncu->splitValue = oyuncu_el_degeri(aktif_oyuncu->splitEl,aktif_oyuncu->splitkartsayi);
                         } else {
-                             aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                             aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
                         }
                     }
 
@@ -652,9 +655,9 @@ int main(void)
 
                             // Puanı güncelle
                             if (aktif_oyuncu->isSplitted == 1 && aktif_oyuncu->sirasplittemi == 1) {
-                                *suanki_puan = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                                *suanki_puan = oyuncu_el_degeri(aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
                             } else {
-                                aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu,aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
+                                aktif_oyuncu->value = oyuncu_el_degeri(aktif_oyuncu->el,aktif_oyuncu->kart_sayi);
                             }
 
                             // Double'dan sonra mecburi Stand yapılır
@@ -707,13 +710,13 @@ int main(void)
              // Kasa Sirasi 17nin altina kart ceker
             case STATE_KASA_TURU:
                 kart_kapali_mi = 1;
-                int kasa_durumu = oyuncu_el_degeri(&krupiyer,krupiyer.el,krupiyer.kart_sayi);
+                int kasa_durumu = oyuncu_el_degeri(krupiyer.el,krupiyer.kart_sayi);
                 if(kasa_durumu<17) {
                     if (GetTime() > kasaCekmeZamani) {
                         kartlarbittimi(&kart_sayisi, uzundeste,karistirmasesi);
                         PlaySound(kartcekmesesi);
                         kart_cek(&krupiyer.kart_sayi,krupiyer.el,uzundeste,&kart_sayisi);
-                        kasa_durumu = oyuncu_el_degeri(&krupiyer,krupiyer.el,krupiyer.kart_sayi);
+                        kasa_durumu = oyuncu_el_degeri(krupiyer.el,krupiyer.kart_sayi);
                         kasaCekmeZamani = GetTime() + kasaBeklemeSuresi;
                     }
                 }

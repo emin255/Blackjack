@@ -29,7 +29,7 @@ struct oyuncu {
 void kazanan(struct oyuncu* oyuncu, struct oyuncu* krupiyer);
 void deste_olustur(struct kart deste[52]);
 void uzundesteyikaristir(struct kart deste[]);
-int oyuncu_el_degeri(struct oyuncu* oyuncu,struct kart el[],int kartsayisi);
+int oyuncu_el_degeri(struct kart el[],int kartsayisi);
 void desteyi_karistir(struct kart deste[]);
 void kart_cek(int *oyuncu_kart_sayi,struct kart el[], struct kart deste[],int* kart_sayisi);
 
