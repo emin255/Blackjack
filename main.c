@@ -578,11 +578,10 @@ int main(void)
 
                 // --- TIKLAMA MANTIĞI ---
                 else if (IsMouseButtonPressed(MOUSE_BUTTON_LEFT)) {
-
                     // 1. SPLIT BUTONU (Sadece ilk turda, kartlar eşitse ve split yapılmadıysa)
                     if (aktif_oyuncu->isSplitted == 0 && aktif_oyuncu->kart_sayi == 2 &&
-                        aktif_oyuncu->el[0].konumx == aktif_oyuncu->el[1].konumx) {
-
+                        aktif_oyuncu->el[0].konumx == aktif_oyuncu->el[1].konumx&&
+                                        aktif_oyuncu->bakiye>=aktif_oyuncu->bahis) {
                         if (CheckCollisionRotatedRec(mousepos, splitRect, aci2)) {
                             // Split İşlemleri
                             aktif_oyuncu->isSplitted = 1;
@@ -770,8 +769,11 @@ int main(void)
                 float c = cosf(rad);
                 Vector2 sag   = { c, s };
                 // 1. Kartlari Ciz
-                oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci,global_animasyon_kilit);
+                if (mevcutDurum == STATE_BAHIS||mevcutDurum==STATE_OYUNCU_Ekle) {
 
+                }else {
+                    oyuncu_el_ciz(&oyuncular[i], cardSpriteSheet, pos, aci,global_animasyon_kilit);
+                }
                 float skorDist = -90.0f;
                 Vector2 skorPos = {
                     pos.x - (skorDist * s),
@@ -833,11 +835,10 @@ int main(void)
             }
             DrawText(TextFormat("Oyuncu Sayisi %d ",oyuncu_sayisi),850.0f,300.0f,20.0f,WHITE);
         }
-        else if (mevcutDurum == STATE_BAHIS) { // BAHIS duzeltildi
+        else if (mevcutDurum == STATE_BAHIS) {
             Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
             float aci = koltuk_acilari[siradaki_oyuncu];
             float rad = aci * DEG2RAD;
-
             // Vektorel hesaplama
             float s = sinf(rad);
             float c = cosf(rad);
@@ -879,7 +880,6 @@ int main(void)
             YaziCizDondur("+100",bahis100Rect.x,bahis100Rect.y, aci, 14,WHITE);
             YaziCizDondur("Bahsi Koy",bahiskoyRect.x,bahiskoyRect.y, aci, 14,WHITE);
             YaziCizDondur("Bahsi Sifirla",bahissifirlaRect.x,bahissifirlaRect.y, aci, 14,WHITE);
-
         }
         else if (mevcutDurum == STATE_OYUNCU_TURU) {
             Vector2 pos = koltuk_konumlari[siradaki_oyuncu];
