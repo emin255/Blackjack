@@ -52,7 +52,7 @@ bool CheckCollisionRotatedRec(Vector2 point, Rectangle rec, float rotation) {
 
 Vector2 koltuk_konumlari[5] = {
     {425, 390},  // 0. Koltuk (En Sol)
-    {65, 585},  // 1. Koltuk (Sol)
+    {650, 585},  // 1. Koltuk (Sol)
     {945, 650},  // 2. Koltuk (Orta)
     {1235, 580}, // 3. Koltuk (Sağ)
     {1465, 400}  // 4. Koltuk (En Sağ)
@@ -877,7 +877,6 @@ int main(void)
         // Krupiyerin elini masaya cizer
         krupiyer_el_ciz(&krupiyer,cardSpriteSheet,(Vector2){700,80},kart_kapali_mi);
         if (mevcutDurum == STATE_OYUNCU_Ekle) {
-
             // Tüm koltukları gez
             for (int i = 0; i < MAX_SEATS; i++) {
                 Vector2 pos = koltuk_konumlari[i];
@@ -896,7 +895,6 @@ int main(void)
                 else {
                     // Yeşil bir daire ve artı işareti çiz
                     DrawCircleV(pos, 40, DARKGREEN); // Buton zemini
-                    DrawCircleLines(pos.x, pos.y, 40, LIME); // Çerçeve
 
                     // Artı (+) İşareti
                     DrawRectangle(pos.x - 5, pos.y - 20, 10, 40, WHITE); // Dikey
