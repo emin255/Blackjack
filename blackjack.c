@@ -5,14 +5,9 @@
 #include <time.h>
 #include "blackjack.h"
 void kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
-    // Krupiyer kazanırsa 0
-    // Oyuncu kazanırsa 1
-    // Oyuncu patlarsa 2
-    // Krupiyer patlarsa 4
-    // Denkse 3
     int krupiyervalue = oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi);
     int oyuncuvalue = oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi);
-    int oyuncusplitValue = oyuncu_el_degeri(krupiyer->splitEl,oyuncu->splitkartsayi);
+    int oyuncusplitValue = oyuncu_el_degeri(oyuncu->splitEl,oyuncu->splitkartsayi);
     if (oyuncu->isSplitted==1) {
         if (oyuncusplitValue>21) {
             strcpy(oyuncu->splitsonuc,"oyuncu patladi");
@@ -36,29 +31,27 @@ void kazanan(struct oyuncu* oyuncu,struct oyuncu* krupiyer) {
             oyuncu->bakiye += oyuncu->bahis;
         }
     }
-    if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)>21) {
+    if (oyuncuvalue>21) {
         strcpy(oyuncu->sonuc,"oyuncu patladi");
     }
-    else if (oyuncu_el_degeri(krupiyer->el,oyuncu->kart_sayi)>21) {
-        strcpy(oyuncu->sonuc,"Kasa patladi"); // duzeltildi
+    else if (krupiyervalue>21) {
+        strcpy(oyuncu->sonuc,"Kasa patladi");
         oyuncu->bakiye += oyuncu->bahis*2;
     }
-    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)==21&&oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)!=21&&oyuncu->kart_sayi == 2) {
+    else if (oyuncuvalue==21&&krupiyervalue!=21&&oyuncu->kart_sayi == 2) {
         strcpy(oyuncu->sonuc,"oyuncu kazandi");
         oyuncu->bakiye += oyuncu->bahis*2;
     }
-    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)<oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)) {
+    else if (oyuncuvalue<krupiyervalue) {
         strcpy(oyuncu->sonuc,"kasa kazandi");
     }
-    else if (oyuncu_el_degeri(oyuncu->el,oyuncu->kart_sayi)>oyuncu_el_degeri(krupiyer->el,krupiyer->kart_sayi)) {
+    else if (oyuncuvalue>krupiyervalue) {
         strcpy(oyuncu->sonuc,"oyuncu kazandi");
         oyuncu->bakiye += oyuncu->bahis*2;
     }else {
         strcpy(oyuncu->sonuc,"berabere");
         oyuncu->bakiye += oyuncu->bahis;
     }
-
-
 }
 void deste_olustur(struct kart deste[52]){
     char *turler[] = {"kupa","karo","sinek","maca"};
