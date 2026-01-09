@@ -125,9 +125,9 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
     (*kart_sayisi)++;
     krupiyer->kart_sayi += 2;
 }
-
 // Kryupiyerin kartlarini ekrana cizer
-void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 vector2,int gizle) {
+void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 pos,int gizle,bool hareket_var_mi) {
+    /*
     for (int i = 0; i<oyuncu->kart_sayi;i++) {
         if (gizle == 0 && i == 0) {
             Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
@@ -139,8 +139,57 @@ void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 v
             DrawTextureRec(spritesheet, sourcerec, drawPos, WHITE);
         }
     }
-}
+    */
+    for (int a = 0; a < oyuncu->kart_sayi; a++) {
+        Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
+        Rectangle sourcerec1;
+        if (a==1&&gizle==0) {
+            sourcerec1 = kapali_kart;
+        }else {
+            sourcerec1 = kart_degerini_al(&oyuncu->el[a]);
+        }
 
+        float shiftX1 = (a*(CARD_WIDTH+10));
+
+        Vector2 hedefKonum1 = {
+            pos.x + shiftX1,
+            pos.y
+        };
+
+        struct kart *aktifKart1 = &oyuncu->el[a];
+        Vector2 gorselPos1 = {aktifKart1->mevcutKonumx,aktifKart1->mevcutkonumy};
+
+        if (a>0 && oyuncu->el[a-1].vardimmi == 0) {
+            continue;
+        }
+        if (aktifKart1->vardimmi == 0) {
+            if (hareket_var_mi == true) {
+                continue;
+            }
+            hareket_var_mi = true;
+            aktifKart1->mevcutKonumx = FloatLerp(gorselPos1.x, hedefKonum1.x, 0.09f);
+            aktifKart1->mevcutkonumy= FloatLerp(gorselPos1.y, hedefKonum1.y, 0.09f);
+
+            if (fabsf(gorselPos1.x - hedefKonum1.x) < 1.0f &&
+                fabsf(gorselPos1.y - hedefKonum1.y) < 1.0f) {
+
+                gorselPos1 = hedefKonum1;
+                aktifKart1->vardimmi = 1;
+                }
+        } else {
+            gorselPos1 = hedefKonum1;
+        }
+        Rectangle destRec1 = {
+            gorselPos1.x,
+            gorselPos1.y,
+            CARD_WIDTH,
+            CARD_HEIGHT
+        };
+
+        Vector2 origin1 = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+        DrawTexturePro(spritesheet, sourcerec1, destRec1, origin1, 0, WHITE);
+    }
+}
 // Oyuncularin ellerini oturduklari konuma gore cizer
 void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, float aci,bool hareket_var_mi) {
     float radyan = aci * DEG2RAD; // Dereceyi Radyana cevir
@@ -190,53 +239,8 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 
             Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
             DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
-
-            for (int i = 0; i < oyuncu->kart_sayi; i++) {
-                Rectangle sourcerec1 = kart_degerini_al(&oyuncu->el[i]);
-
-                float shiftX1 = ((i * kart_araligi)-(split_araligi)) * cosf(radyan);
-                float shiftY1 = ((i * kart_araligi)-(split_araligi)) * sinf(radyan);
-
-                Vector2 hedefKonum1 = {
-                    pos.x + shiftX1,
-                    pos.y + shiftY1
-                };
-
-                struct kart *aktifKart1 = &oyuncu->el[i];
-                Vector2 gorselPos1 = {aktifKart1->mevcutKonumx,aktifKart1->mevcutkonumy};
-
-                if (i>0 && oyuncu->el[i-1].vardimmi == 0) {
-                    continue;
-                }
-                if (aktifKart1->vardimmi == 0) {
-                    if (hareket_var_mi == true) {
-                        continue;
-                    }
-                    hareket_var_mi = true;
-                    aktifKart1->mevcutKonumx = FloatLerp(gorselPos1.x, hedefKonum1.x, 0.09f);
-                    aktifKart1->mevcutkonumy= FloatLerp(gorselPos1.y, hedefKonum1.y, 0.09f);
-
-                    if (fabsf(gorselPos1.x - hedefKonum1.x) < 1.0f &&
-                        fabsf(gorselPos1.y - hedefKonum1.y) < 1.0f) {
-
-                        gorselPos1 = hedefKonum1;
-                        aktifKart1->vardimmi = 1;
-                        }
-                } else {
-                    gorselPos1 = hedefKonum1;
-                }
-                Rectangle destRec1 = {
-                    gorselPos1.x,
-                    gorselPos1.y,
-                    CARD_WIDTH,
-                    CARD_HEIGHT
-                };
-
-                Vector2 origin1 = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
-                DrawTexturePro(spritesheet, sourcerec1, destRec1, origin1, aci, WHITE);
-            }
         }
-    }else {
+    }
         for (int i = 0; i < oyuncu->kart_sayi; i++) {
             float kart_araligi = 30.0f;
             Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
@@ -281,7 +285,7 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 
             Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
             DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
-        }
+
     }
 
 }
@@ -289,6 +293,7 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 // Ana Fonksiyon
 int main(void)
 {
+    bool global_animasyon_kilit = false;
     Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
     int sonuc;
     int siradaki_oyuncu = 0;
@@ -812,7 +817,6 @@ int main(void)
         for (int i = 0;i<MAX_SEATS;i++) {
             // sirdaki oyuncu aktif ise islem yapar
             if (oyuncular[i].isActive == 1) {
-                bool global_animasyon_kilit = false;
                 float aci = koltuk_acilari[i];
                 Vector2 pos = koltuk_konumlari[i];
                 float rad = aci * DEG2RAD;
@@ -875,7 +879,7 @@ int main(void)
             }
         }
         // Krupiyerin elini masaya cizer
-        krupiyer_el_ciz(&krupiyer,cardSpriteSheet,(Vector2){700,80},kart_kapali_mi);
+        krupiyer_el_ciz(&krupiyer,cardSpriteSheet,(Vector2){750,130},kart_kapali_mi,global_animasyon_kilit);
         if (mevcutDurum == STATE_OYUNCU_Ekle) {
             // Tüm koltukları gez
             for (int i = 0; i < MAX_SEATS; i++) {
