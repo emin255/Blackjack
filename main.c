@@ -127,19 +127,6 @@ void yeni_el(struct oyuncu oyuncular[], struct oyuncu* krupiyer, struct kart* de
 }
 // Kryupiyerin kartlarini ekrana cizer
 void krupiyer_el_ciz(const struct oyuncu* oyuncu,Texture2D spritesheet,Vector2 pos,int gizle,bool hareket_var_mi) {
-    /*
-    for (int i = 0; i<oyuncu->kart_sayi;i++) {
-        if (gizle == 0 && i == 0) {
-            Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
-            Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + 10.0f)), vector2.y };
-            DrawTextureRec(spritesheet, kapali_kart, drawPos, WHITE);
-        }else {
-            Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
-            Vector2 drawPos = { vector2.x + (i * (CARD_WIDTH + 10.0f)), vector2.y };
-            DrawTextureRec(spritesheet, sourcerec, drawPos, WHITE);
-        }
-    }
-    */
     for (int a = 0; a < oyuncu->kart_sayi; a++) {
         Rectangle kapali_kart = {13.0f*CARD_WIDTH,3.0f*CARD_HEIGHT,CARD_WIDTH,CARD_HEIGHT};
         Rectangle sourcerec1;
@@ -239,8 +226,54 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 
             Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
             DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
+
+            for (int b = 0; b < oyuncu->kart_sayi; b++) {
+                kart_araligi = 30.0f;
+                sourcerec = kart_degerini_al(&oyuncu->el[b]);
+
+                shiftX = ((b * kart_araligi)-(split_araligi)) * cosf(radyan);
+                shiftY = ((b * kart_araligi)-(split_araligi)) * sinf(radyan);
+
+                Vector2 hedefKonum = {
+                    pos.x + shiftX,
+                    pos.y + shiftY
+                };
+
+                struct kart *aktifKart = &oyuncu->el[b];
+                Vector2 gorselPos = {aktifKart->mevcutKonumx,aktifKart->mevcutkonumy};
+
+                if (b>0 && oyuncu->el[b-1].vardimmi == 0) {
+                    continue;
+                }
+                if (aktifKart->vardimmi == 0) {
+                    if (hareket_var_mi == true) {
+                        continue;
+                    }
+                    hareket_var_mi = true;
+                    aktifKart->mevcutKonumx = FloatLerp(gorselPos.x, hedefKonum.x, 0.09f);
+                    aktifKart->mevcutkonumy= FloatLerp(gorselPos.y, hedefKonum.y, 0.09f);
+
+                    if (fabsf(gorselPos.x - hedefKonum.x) < 1.0f &&
+                        fabsf(gorselPos.y - hedefKonum.y) < 1.0f) {
+
+                        gorselPos = hedefKonum;
+                        aktifKart->vardimmi = 1;
+                        }
+                } else {
+                    gorselPos = hedefKonum;
+                }
+                Rectangle destRec = {
+                    gorselPos.x,
+                    gorselPos.y,
+                    CARD_WIDTH,
+                    CARD_HEIGHT
+                };
+
+                Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
+                DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
+            }
         }
-    }
+    }else {
         for (int i = 0; i < oyuncu->kart_sayi; i++) {
             float kart_araligi = 30.0f;
             Rectangle sourcerec = kart_degerini_al(&oyuncu->el[i]);
@@ -285,7 +318,7 @@ void oyuncu_el_ciz(struct oyuncu* oyuncu, Texture2D spritesheet, Vector2 pos, fl
 
             Vector2 origin = { CARD_WIDTH / 2.0f, CARD_HEIGHT / 2.0f };
             DrawTexturePro(spritesheet, sourcerec, destRec, origin, aci, WHITE);
-
+        }
     }
 
 }
